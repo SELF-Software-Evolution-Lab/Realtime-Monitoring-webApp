@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+    <script src="{% static 'lib/highcharts-8.1.2/highcharts.js' %}"></script>
+    <script src="{% static 'lib/highcharts-8.1.2/modules/exporting.js' %}"></script>
+    <script src="{% static 'lib/highcharts-8.1.2/modules/export-data.js' %}"></script>
+    <script src="{% static 'lib/highcharts-8.1.2/modules/accessibility.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <br>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+
+                <div id="container-runtime"></div>
+                <br>
+                <div class="form-row">
+                    <div class="col">
+                      <input type="text" class="form-control" placeholder="Location" id="location">
+                    </div>
+                    <div class="col">
+                      <input type="text" class="form-control" placeholder="User" id="login">
+                    </div>
+                    <div class="col"> 
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <script type="application/javascript">
+        Highcharts.chart('container-runtime', {
+            chart: {
+                type: 'spline',
+                animation: Highcharts.svg, // don't animate in old IE
+                marginRight: 10,
+                events: {
+                    load: function () {
+                      var series = this.series[0];
+                        setInterval(function () {
+                            $.ajax({
+                                url: window.location.pathname, //window.location.pathname
+                                type: 'POST',
+                                data: {
+                                    'action': 'get_graph_online',
+                                    'login': document.getElementById("login").value,
+                                    'location': document.getElementById("location").value
+                                },
+                                dataType: 'json',
+                            }).done(function (data) {
+                                if (!data.hasOwnProperty('error')) {
+                                    var x = (new Date()).getTime();
+                                    series.addPoint([x, data.y], true, true);
+                                    console.log(data.y)
+                                    return false;
+                                }
+                                message_error(data.error);
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                alert(textStatus + ': ' + errorThrown);
+                            }).always(function (data) {
+
+                            });
+                        }, 1000); 
+                    }
+                }
+            },
+
+            time: {
+                useUTC: false
+            },
+
+            title: {
+                text: 'Temperature'
+            },
+
+            accessibility: {
+                announceNewData: {
+                    enabled: true,
+                    minAnnounceInterval: 15000,
+                    announcementFormatter: function (allSeries, newSeries, newPoint) {
+                        if (newPoint) {
+                            return 'New point added. Value: ' + newPoint.y;
+                        }
+                        return false;
+                    }
+                }
+            },
+
+            xAxis: {
+                type: 'datetime',
+                tickPixelInterval: 150
+            },
+
+            yAxis: {
+                title: {
+                    text: 'Value'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br/>',
+                pointFormat: '{point.x:%Y-%m-%d %H:%M:%S}<br/>{point.y:.2f}'
+            },
+
+            legend: {
+                enabled: false
+            },
+
+            exporting: {
+                enabled: false
+            },
+
+            series: [{
+                name: 'Random data',
+                data: (function () {
+                    // generate an array of random data
+                    var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+
+                    for (i = -19; i <= 0; i += 1) {
+                        data.push({
+                            x: time + i * 1000,
+                            y: 0
+                        });
+                    }
+                    return data;
+                }())
+            }]
+        });
+
+    </script>
+
+{% endblock %}

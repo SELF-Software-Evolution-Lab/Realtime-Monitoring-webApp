@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- jQuery -->
+        <script src="{% static 'lib/adminlte-3.0.4/plugins/jquery/jquery.min.js' %}"></script> 
+        <!-- Jquery Confirm -->
+        <link rel="stylesheet" href="{% static 'lib/jquery-confirm-v3.3.4/jquery-confirm.min.css' %}">
+        <script src="{% static 'lib/jquery-confirm-v3.3.4/jquery-confirm.min.js' %}"></script>
+        <!-- Functions -->
+        <script src="{% static 'js/functions.js' %}"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'lib/bootstrap-4.4.1-dist/css/bootstrap.min.css' %}">
+        <script src="{% static 'lib/bootstrap-4.4.1-dist/js/bootstrap.min.js' %}"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% block head %}
+        <title>ISIS2503</title>
+        {% endblock %}
+    </head>
+    <body>
+        <br>
+        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #CBE7FD;">
+
+            <nav class="navbar navbar-light" style="background-color: #CBE7FD;">
+                <a class="navbar-brand" href="/">
+                <img src="/static/media/logoAndes.png" width="130" height="45" alt="">
+                </a>
+            </nav>
+
+          <nav class="navbar navbar-light" style="background-color: #CBE7FD;">
+              <a class="navbar-brand" href="/">
+                  Monitoring App
+              </a>
+          </nav>
+
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Realtime Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/historical/">Historical Data</a>
+                </li>
+            </ul>
+          </div>
+
+
+        </nav>
+
+
+        <main>
+          <div class="container" style="min-height: 580px;">
+          {% block content %}
+          {% endblock %}
+          </div>
+        </main>
+
+    </body>
+
+</html>

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+    <script src="{% static 'lib/highcharts-8.1.2/highcharts.js' %}"></script>
+    <script src="{% static 'lib/highcharts-8.1.2/modules/data.js' %}"></script>
+    <script src="{% static 'lib/highcharts-8.1.2/modules/exporting.js' %}"></script>
+    <script src="{% static 'lib/highcharts-8.1.2/modules/export-data.js' %}"></script>
+    <script src="{% static 'lib/highcharts-8.1.2/modules/accessibility.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <br>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+
+                <div id="container-historical"></div>
+                <br>
+                <div class="form-row">
+                    <div class="col">
+                        <input type="text" class="form-control" placeholder="Variable" id="variable">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" placeholder="Location" id="location">
+                    </div>
+                    <div class="col"> 
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <script type="application/javascript">
+        Highcharts.getJSON(
+            'https://cdn.jsdelivr.net/gh/highcharts/highcharts@v7.0.0/samples/data/usdeur.json',
+            function (data) {
+                
+                Highcharts.chart('container-historical', {
+                    chart: {
+                        zoomType: 'x'
+                    },
+                    title: {
+                        text: 'Historical Data Sensor (Average)'
+                    },
+                    subtitle: {
+                        text: document.ontouchstart === undefined ?
+                            'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+                    },
+                    xAxis: {
+                        type: 'datetime'
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Value'
+                        }
+                    },
+                    legend: {
+                        enabled: false
+                    },
+                    plotOptions: {
+                        area: {
+                            fillColor: {
+                                linearGradient: {
+                                    x1: 0,
+                                    y1: 0,
+                                    x2: 0,
+                                    y2: 1
+                                },
+                                stops: [
+                                    [0, Highcharts.getOptions().colors[0]],
+                                    [1, Highcharts.color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                                ]
+                            },
+                            marker: {
+                                radius: 2
+                            },
+                            lineWidth: 1,
+                            states: {
+                                hover: {
+                                    lineWidth: 1
+                                }
+                            },
+                            threshold: null
+                        }
+                    },
+
+                    series: [{
+                        type: 'area',
+                        name: 'Value',
+                        data: data
+                    }]
+                });
+            }
+        );
+    </script>
+
+{% endblock %}
