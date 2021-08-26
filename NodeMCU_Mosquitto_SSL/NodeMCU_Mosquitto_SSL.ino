@@ -2,6 +2,11 @@
 #include <WiFiClientSecure.h>
 #include <time.h>
 #include <PubSubClient.h>
+#include "DHT.h"
+#define DHTTYPE DHT11 // DHT 11
+
+#define dht_dpin 4
+DHT dht(dht_dpin, DHTTYPE);
 
 #include "secrets.h"
 
@@ -10,12 +15,13 @@ const char pass[] = "wifi-password";
 
 #define HOSTNAME "nodeMCU-hostname"
 
-const char MQTT_HOST[] = "ip-mosquitto-broker";
-const int MQTT_PORT = 8883;
+const char MQTT_HOST[] = "iotlab.virtual.uniandes.edu.co";
+const int MQTT_PORT = 8082;
 const char MQTT_USER[] = "mosquitto-user"; // leave blank if no credentials used
 const char MQTT_PASS[] = "mosquitto-password"; // leave blank if no credentials used
 const char MQTT_SUB_TOPIC[] = HOSTNAME "/";
-const char MQTT_PUB_TOPIC[] = HOSTNAME "/city/temperature";
+const char MQTT_PUB_TOPIC1[] = "moisture/city/" HOSTNAME;
+const char MQTT_PUB_TOPIC2[] = "temperature/city/" HOSTNAME;
 
 //////////////////////////////////////////////////////
 
@@ -144,6 +150,23 @@ void loop()
   }
 
   now = time(nullptr);
-  client.publish(MQTT_PUB_TOPIC, ctime(&now), false);
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  String json = "{\"value\": "+ String(h) + "}";
+  char payload1[json.length()+1];
+  json.toCharArray(payload1,json.length()+1);
+  json = "{\"value\": "+ String(t) + "}";
+  char payload2[json.length()+1];
+  json.toCharArray(payload2,json.length()+1);
+  if ( !isnan(h) && !isnan(t) ) {
+    client.publish(MQTT_PUB_TOPIC1, payload1, false);
+    client.publish(MQTT_PUB_TOPIC2, payload2, false);
+  }
+  Serial.print(MQTT_PUB_TOPIC1);
+  Serial.print(" -> ");
+  Serial.println(payload1);
+  Serial.print(MQTT_PUB_TOPIC2);
+  Serial.print(" -> ");
+  Serial.println(payload2); 
   delay(5000);
 }
