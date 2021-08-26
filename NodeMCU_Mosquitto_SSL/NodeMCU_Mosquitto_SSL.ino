@@ -69,6 +69,16 @@ void setup()
   WiFi.begin(ssid, pass);
   while (WiFi.status() != WL_CONNECTED)
   {
+    if ( WiFi.status() == WL_NO_SSID_AVAIL ) {
+      Serial.print("\nLa red WiFi no se ha encontrado, revise que haya escrito correctamente el nombre de la red en el valor de la constante ssid");
+      ESP.deepSleep(0);
+    } else if ( WiFi.status() == WL_WRONG_PASSWORD ) {
+      Serial.print("\nLa contraseña ingresada no es correcta, revise que haya escrito correctamente la contraseña de la red en el valor de la constante pass");
+      ESP.deepSleep(0);
+    } else if ( WiFi.status() == WL_CONNECT_FAILED ) {
+      Serial.print("\nNo se ha logrado conectar con la red, resetee el node y vuelva a intentar");
+      ESP.deepSleep(0);
+    }
     Serial.print(".");
     delay(1000);
   }
