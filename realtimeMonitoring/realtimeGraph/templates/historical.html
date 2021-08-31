@@ -1,98 +1,219 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block head %}
-    <script src="{% static 'lib/highcharts-8.1.2/highcharts.js' %}"></script>
-    <script src="{% static 'lib/highcharts-8.1.2/modules/data.js' %}"></script>
-    <script src="{% static 'lib/highcharts-8.1.2/modules/exporting.js' %}"></script>
-    <script src="{% static 'lib/highcharts-8.1.2/modules/export-data.js' %}"></script>
-    <script src="{% static 'lib/highcharts-8.1.2/modules/accessibility.js' %}"></script>
-{% endblock %}
-
-{% block content %}
-    <br>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-
-                <div id="container-historical"></div>
-                <br>
-                <div class="form-row">
-                    <div class="col">
-                        <input type="text" class="form-control" placeholder="Variable" id="variable">
-                    </div>
-                    <div class="col">
-                        <input type="text" class="form-control" placeholder="Location" id="location">
-                    </div>
-                    <div class="col"> 
-                    </div>
-                </div>
-
-
-            </div>
+{% extends 'base.html' %} {% load static %} {% block head %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/data.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="{% static 'lib/highcharts-8.1.2/modules/export-data.js' %}"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+{% endblock %} {% block content %}
+<br />
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="row">
+        <div class="col-md-6 col-12">
+          <div class="form-group">
+            <label for="daterange">Rango de fechas:</label>
+          <input type="text" name="daterange" value="" readonly role="button" class="form-control"/>
+          </div>
+          </div>
+          <div class="col-md-6 col 12">
+            <button class="btn btn-secondary float-right align-self-center" onclick="downloadCSV()">Exportar CSV</button>
+          </div>
+          </div>
         </div>
+      </div>
+      {% for measure in measurements %}
+      <div id="container-historical-{{measure.name}}"></div>
+      {% if data %}
+      <div class="row">
+        <div class="col-4">
+          <div class="form-group">
+            <label for="avg">Promedio:</label>
+            {% with name=measure.name %}  
+            {% with key=name|add_str:',avg' %}  
+            <p>{{data|get_statistic:key}}</p>
+            {% endwith %} 
+            {% endwith %}
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="form-group">
+            <label for="min">Mínimo:</label>
+            {% with name=measure.name %}  
+            {% with key=name|add_str:',min' %}  
+            <p>{{data|get_statistic:key}}</p>
+            {% endwith %} 
+            {% endwith %}
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="form-group">
+            <label for="max">Máximo:</label>
+            {% with name=measure.name %}  
+            {% with key=name|add_str:',max' %}  
+            <p>{{data|get_statistic:key}}</p>
+            {% endwith %} 
+            {% endwith %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+      <br />
+      <div class="form-row">
+        {% if selectedUser %}
+        <div class="col">
+          <div class="form-group">
+            <label for="ciudad">Ciudad:</label>
+            <select
+              class="form-control"
+              aria-label="Seleccionar ciudad"
+              aria-placeholder="Ciudad"
+              onchange="this.options[this.selectedIndex].value && (window.location = '/historical/' + this.options[this.selectedIndex].value);"
+            >
+              <option value="">Todas</option>
+              {% for city in cities %}
+              <option value="{{city.name}}"
+              {% if selectedCity.name == city.name %}
+                selected
+                {% endif %}>{{city.name}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <script type="application/javascript">
-        Highcharts.getJSON(
-            'https://cdn.jsdelivr.net/gh/highcharts/highcharts@v7.0.0/samples/data/usdeur.json',
-            function (data) {
-                
-                Highcharts.chart('container-historical', {
-                    chart: {
-                        zoomType: 'x'
-                    },
-                    title: {
-                        text: 'Historical Data Sensor (Average)'
-                    },
-                    subtitle: {
-                        text: document.ontouchstart === undefined ?
-                            'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
-                    },
-                    xAxis: {
-                        type: 'datetime'
-                    },
-                    yAxis: {
-                        title: {
-                            text: 'Value'
-                        }
-                    },
-                    legend: {
-                        enabled: false
-                    },
-                    plotOptions: {
-                        area: {
-                            fillColor: {
-                                linearGradient: {
-                                    x1: 0,
-                                    y1: 0,
-                                    x2: 0,
-                                    y2: 1
-                                },
-                                stops: [
-                                    [0, Highcharts.getOptions().colors[0]],
-                                    [1, Highcharts.color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                                ]
-                            },
-                            marker: {
-                                radius: 2
-                            },
-                            lineWidth: 1,
-                            states: {
-                                hover: {
-                                    lineWidth: 1
-                                }
-                            },
-                            threshold: null
-                        }
-                    },
+  </div>
+</div>
+<div hidden>
+  {{data|json_script:'data'}}
+</div>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<script type="application/javascript">
+$(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'right'
+  }, function(start, end, label) {
+    console.log(typeof(start));
+    let startTime = +start;
+    let endTime = +end;
+    let location = window.location.toString();
+    if (location.includes('?')) {
+      window.location = location.substring(0, location.indexOf('?')) + `?from=${startTime}&to=${endTime}`;
+    } else {
+      window.location += `?from=${startTime}&to=${endTime}`;
+    }
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
+        var data = JSON.parse(JSON.parse(document.getElementById('data').textContent));
+        Object.keys(data).forEach(function(key) {
+          Highcharts.chart("container-historical-"+key, {
+        chart: {
+          zoomType: "x",
+        },
+        title: {
+          text: key,
+        },
+        subtitle: {
+          text:
+            document.ontouchstart === undefined
+              ? "Click and drag in the plot area to zoom in"  
+              : "Pinch the chart to zoom in",
+        },
+        xAxis: {
+          type: "datetime",
+        },
+        yAxis: {
+          title: {
+            text: "Value",
+          },
+        },
+        legend: {
+          enabled: false,
+        },
+        plotOptions: {
+          area: {
+            fillColor: {
+              linearGradient: {
+                x1: 0,
+                y1: 0,
+                x2: 0,
+                y2: 1,
+              },
+              stops: [
+                [0, Highcharts.getOptions().colors[0]],
+                [
+                  1,
+                  Highcharts.color(Highcharts.getOptions().colors[0])
+                    .setOpacity(0)
+                    .get("rgba"),
+                ],
+              ],
+            },
+            marker: {
+              radius: 2,
+            },
+            lineWidth: 1,
+            states: {
+              hover: {
+                lineWidth: 1,
+              },
+            },
+            threshold: null,
+          },
+        },
 
-                    series: [{
-                        type: 'area',
-                        name: 'Value',
-                        data: data
-                    }]
-                });
-            }
-        );
-    </script>
+        series: [
+          {
+            type: "area",
+            name: "Value",
+            data: data[key].data,
+          },
+        ],
+      });
+        });    
+</script>
+
+<script>
+  function downloadCSV() {
+    
+  
+    for (const measure in data) {
+      const rows = [
+    ["Usuario", "Ciudad", "Fecha (epoch)", "Variable", "Medición"],
+  ];
+      if (Object.hasOwnProperty.call(data, measure)) {
+        const element = data[measure];
+        console.log('Element: ', element.data)
+        for (const medida of element.data) {
+          rows.push(
+            [
+              "{{selectedUser.login}}",
+              "{{selectedCity.name}}",
+              medida[0],
+              measure,
+              medida[1]
+            ]
+          );
+        }
+      }
+      let csvContent = "data:text/csv;charset=utf-8," 
+    + rows.map(e => e.join(",")).join("\n");
+    var encodedUri = encodeURI(csvContent);
+var link = document.createElement("a");
+link.setAttribute("href", encodedUri);
+link.setAttribute("download", measure+"-data.csv");
+document.body.appendChild(link); // Required for FF
+
+link.click();
+link.remove();
+    }
+  }
+</script>
 
 {% endblock %}

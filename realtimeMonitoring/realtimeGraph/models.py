@@ -1,31 +1,74 @@
 from django.db import models
+from django.db.models.fields import DateTimeField
+import datetime
 
 # Create your models here.
 
-class User(models.Model):
-    login = models.CharField(max_length=50)
 
-    def __str__(self):
-        return '{}'.format(self.login)
+class Rol(models.Model):
+    name = models.CharField(max_length=16, blank=False, unique=True)
+    active = models.BooleanField(default=True)
 
-class Location(models.Model):
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
+    def str(self):
         return '{}'.format(self.name)
 
-class Sensor(models.Model):
-    variable = models.CharField(max_length=50)
+
+class User(models.Model):
+    login = models.CharField(max_length=50, unique=True, blank=False)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True)
+    password = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(max_length=60, blank=True)
+    rol = models.ForeignKey(Rol, on_delete=models.CASCADE, blank=True)
+    active = models.BooleanField(default=True)
+
+    def str(self):
+        return '{}'.format(self.login)
+
+
+class City(models.Model):
+    name = models.CharField(max_length=50, unique=True, blank=False)
+    description = models.CharField(max_length=200, blank=True)
+    active = models.BooleanField(default=True)
+
+    def str(self):
+        return '{}'.format(self.name)
+
+
+class Station(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, default=None)
-    
-    def __str__(self):
-        return '%s %s %s' % (self.variable, self.user, self.location)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, default=None)
+    last_activity = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
 
-class SensorData(models.Model):
-    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, default=None)
-    value = models.FloatField(null=True, blank=True, default=None)
-    dateTime = models.DateTimeField(auto_now_add=True)
+    def str(self):
+        return '%s %s %s' % (self.user, self.city, self.last_activity)
 
-    def __str__(self):
-        return '{}'.format(self.value)
+
+class Measurement(models.Model):
+    name = models.CharField(max_length=50, blank=False)
+    unit = models.CharField(max_length=50, blank=False)
+    max_value = models.FloatField(null=True, blank=True, default=None)
+    min_value = models.FloatField(null=True, blank=True, default=None)
+    active = active = models.BooleanField(default=True)
+
+    def str(self):
+        return '{} {}'.format(self.name, self.unit)
+
+
+class Data(models.Model):
+    measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
+    station = models.ForeignKey(Station, on_delete=models.CASCADE)
+    value = models.FloatField(blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def str(self):
+        return '{} {}'.format(self.value, self.created_at)
+
+    def toDict(self):
+        return {
+            'measurement': str(self.measurement),
+            'station': str(self.station),
+            'value': self.value,
+            'created_at': self.created_at
+        }

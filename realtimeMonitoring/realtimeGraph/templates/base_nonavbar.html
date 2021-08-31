@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html style="min-height: 100%">
   <head>
     <link
       rel="stylesheet"
@@ -53,44 +53,9 @@
     <title>ISIS2503</title>
     {% endblock %}
   </head>
-  <body>
-    <br />
-    <nav
-      class="navbar navbar-expand-lg navbar-light"
-      style="background-color: #cbe7fd"
-    >
-      <nav class="navbar navbar-light" style="background-color: #cbe7fd">
-        <a class="navbar-brand" href="/">
-          <img
-            src="/static/media/logoAndes.png"
-            width="130"
-            height="45"
-            alt=""
-          />
-        </a>
-      </nav>
-
-      <nav class="navbar navbar-light" style="background-color: #cbe7fd">
-        <a class="navbar-brand" href="/"> Monitoring App </a>
-      </nav>
-
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/">Realtime Data</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/historical/">Historical Data</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/logout/">Cerrar sesión</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-
-    <main>
-      <div class="container" style="min-height: 580px">
+  <body style="min-height: 100vh">
+    <main style="min-height: 100vh">
+      <div class="container" style="min-height: 100vh">
         {% block content %} {% endblock %}
       </div>
     </main>
