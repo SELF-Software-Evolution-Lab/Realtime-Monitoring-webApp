@@ -13,6 +13,7 @@ class LoginForm(forms.Form):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
         logged_in = utils.ldap_login(username, password)
+        user = None
         if logged_in:
             try:
                 userDB = User.objects.get(login=username)
