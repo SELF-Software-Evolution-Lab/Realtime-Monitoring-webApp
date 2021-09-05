@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import mqtt
+from . import utils
+
+# utils.register_users()
 mqtt.client.loop_start()
 
 urlpatterns = [

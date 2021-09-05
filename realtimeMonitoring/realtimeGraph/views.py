@@ -1,6 +1,8 @@
 from datetime import datetime
 import json
+from realtimeMonitoring import utils
 from typing import Dict
+import requests
 
 from django.template.defaulttags import register
 from django.contrib.auth import login, logout
@@ -12,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.shortcuts import render
 from random import randint
-from .models import City, Data, Measurement, Rol, Station, User
+from .models import City, Data, Measurement, Role, Station, User
 import dateutil.relativedelta
 from django.db.models import Avg, Max, Min, Sum
 
@@ -34,7 +36,8 @@ class DashboardView(TemplateView):
 
         if cityParam == None:
             user = User.objects.get(login=userParam)
-            station = Station.objects.get(user=user)
+            stations = Station.objects.filter(user=user)
+            station = stations[0] if len(stations) > 0 else None
             if station != None:
                 cityParam = station.city.name
 
@@ -80,14 +83,18 @@ class DashboardView(TemplateView):
                     station=stationO, measurement=measure, created_at__gte=start.date()).order_by('-created_at')[:50]
                 data = [[(d.toDict()['created_at'].timestamp() *
                           1000) // 1, d.toDict()['value']] for d in raw_data]
+
+                minVal = raw_data.aggregate(
+                    Min('value'))['value__min']
+                maxVal = raw_data.aggregate(
+                    Max('value'))['value__max']
+                avgVal = raw_data.aggregate(
+                    Avg('value'))['value__avg']
                 result[measure.name] = {
-                    'data': data,
-                    'min': raw_data.aggregate(
-                        Min('value'))['value__min'],
-                    'max': raw_data.aggregate(
-                        Max('value'))['value__max'],
-                    'avg': round(raw_data.aggregate(
-                        Avg('value'))['value__avg'], 2),
+                    'min': minVal if minVal != None else 0,
+                    'max': maxVal if maxVal != None else 0,
+                    'avg': round(avgVal if avgVal != None else 0, 2),
+                    'data': data
                 }
         except Exception as error:
             print('Error en consulta de datos:', error)
@@ -113,21 +120,21 @@ class DashboardView(TemplateView):
         return JsonResponse(data)
 
 
-def get_or_create_rol(name):
+def get_or_create_role(name):
     try:
-        rol = Rol.objects.get(name=name)
-    except Rol.DoesNotExist:
-        rol = Rol(name=name)
-        rol.save()
-    return(rol)
+        role = Role.objects.get(name=name)
+    except Role.DoesNotExist:
+        role = Role(name=name)
+        role.save()
+    return(role)
 
 
 def get_or_create_user(login):
     try:
         user = User.objects.get(login=login)
     except User.DoesNotExist:
-        rol = Rol.objects.get(name="USER")
-        user = User(login=login, rol=rol, )
+        role = Role.objects.get(name="USER")
+        user = User(login=login, role=role, )
         user.save()
     return(user)
 
@@ -136,7 +143,8 @@ def get_or_create_city(name):
     try:
         city = City.objects.get(name=name)
     except City.DoesNotExist:
-        city = City(name=name)
+        lat, lon = utils.getCityCoordinates(name)
+        city = City(name=name, lat=lat, lon=lon)
         city.save()
     return(city)
 
@@ -186,19 +194,19 @@ class LoginView(TemplateView):
     def post(self, request):
         form = LoginForm(request.POST or None)
         if request.POST and form.is_valid():
-            user = form.login(request)
-            if user:
-                # print('User logged: ', user['email'])
-                login(request, user)
-                return HttpResponseRedirect("/")
+            try:
+                user = form.login(request)
+                if user:
+                    # print('User logged: ', user['email'])
+                    login(request, user)
+                    return HttpResponseRedirect("/")
+            except Exception as e:
+                print('Login error', e)
         errors = ''
         for e in form.errors.values():
             errors += e[0]
 
         return render(request, 'login.html', {'errors': errors, 'username': form.cleaned_data['username'], 'password': form.cleaned_data['password'], })
-        # print('User:', username)
-        # print('Pass:', password)
-        # return HttpResponse(, status=200)
 
 
 class LogoutView(TemplateView):
@@ -272,13 +280,16 @@ class HistoricalView(TemplateView):
                             station=station, measurement=measure, created_at__gte=start.date(), created_at__lte=end.date())
                         contextData = [[(d.toDict()['created_at'].timestamp() * 1000) // 1, d.toDict()[
                             'value']] for d in data]
+                        minVal = data.aggregate(
+                            Min('value'))['value__min']
+                        maxVal = data.aggregate(
+                            Max('value'))['value__max']
+                        avgVal = data.aggregate(
+                            Avg('value'))['value__avg']
                         context['data'][measure.name] = {
-                            'min': data.aggregate(
-                                Min('value'))['value__min'],
-                            'max': data.aggregate(
-                                Max('value'))['value__max'],
-                            'avg': round(data.aggregate(
-                                Avg('value'))['value__avg'], 2),
+                            'min': minVal if minVal != None else 0,
+                            'max': maxVal if maxVal != None else 0,
+                            'avg': round(avgVal if avgVal != None else 0, 2),
                             'data': contextData
                         }
                     context['data'] = json.dumps(context['data'])

@@ -2,10 +2,10 @@ from django.db import models
 from django.db.models.fields import DateTimeField
 import datetime
 
-# Create your models here.
+USER_ROLE_ID = 1
 
 
-class Rol(models.Model):
+class Role(models.Model):
     name = models.CharField(max_length=16, blank=False, unique=True)
     active = models.BooleanField(default=True)
 
@@ -19,7 +19,8 @@ class User(models.Model):
     last_name = models.CharField(max_length=50, blank=True)
     password = models.CharField(max_length=50, blank=True)
     email = models.EmailField(max_length=60, blank=True)
-    rol = models.ForeignKey(Rol, on_delete=models.CASCADE, blank=True)
+    role = models.ForeignKey(
+        Role, on_delete=models.CASCADE, default=USER_ROLE_ID)
     active = models.BooleanField(default=True)
 
     def str(self):
@@ -29,6 +30,10 @@ class User(models.Model):
 class City(models.Model):
     name = models.CharField(max_length=50, unique=True, blank=False)
     description = models.CharField(max_length=200, blank=True)
+    lat = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True)
+    lon = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True)
     active = models.BooleanField(default=True)
 
     def str(self):

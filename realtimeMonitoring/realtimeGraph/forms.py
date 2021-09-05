@@ -1,3 +1,6 @@
+from realtimeMonitoring import utils
+from ldap3.utils.log import log
+from realtimeGraph.models import User
 from django import forms
 from django.contrib.auth import authenticate, login
 
@@ -9,7 +12,15 @@ class LoginForm(forms.Form):
     def clean(self):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
-        user = authenticate(username=username, password=password)
+        logged_in = utils.ldap_login(username, password)
+        if logged_in:
+            try:
+                userDB = User.objects.get(login=username)
+                user = authenticate(username=username,
+                                    password=userDB.password)
+            except User.DoesNotExist:
+                raise forms.ValidationError(
+                    "No estás registrado en el sistema de monitoreo. Comunícate con el profesor encargado.")
         if not user or not user.is_active:
             raise forms.ValidationError(
                 "Los datos no son correctos. Revisa y vuelve a intentar.")
@@ -18,5 +29,13 @@ class LoginForm(forms.Form):
     def login(self, request):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
-        user = authenticate(username=username, password=password)
+        logged_in = utils.ldap_login(username, password)
+        if logged_in:
+            try:
+                userDB = User.objects.get(login=username)
+                user = authenticate(username=username,
+                                    password=userDB.password)
+            except User.DoesNotExist:
+                raise forms.ValidationError(
+                    "No estás registrado en el sistema de monitoreo. Comunícate con el profesor encargado.")
         return user
