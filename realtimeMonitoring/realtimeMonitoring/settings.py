@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-mygg^ha8a4k3y1qz5!=(!iw%vnw3=b5amqz4-m=n-m4n_q_g^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['172.24.98.209', 'localhost',
+                 'iotlab.virtual.uniandes.edu.co']
 
 
 # Application definition
@@ -77,8 +78,12 @@ WSGI_APPLICATION = 'realtimeMonitoring.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'iotmonitoring',
+        'USER': 'iotmonitoring',
+        'PASSWORD': 'monitoriaIOT2021*',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
