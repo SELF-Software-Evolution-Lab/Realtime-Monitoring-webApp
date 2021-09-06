@@ -3,6 +3,7 @@ from realtimeGraph.models import Role, User
 from django.contrib.auth.models import User as AuthUser
 from ldap3 import Server, Connection, ALL, SUBTREE, Tls, NTLM
 import ssl
+import requests
 from . import settings
 
 
@@ -43,6 +44,7 @@ def register_users():
 
 
 def ldap_login(username, password):
+    msg = ""
     try:
         user = 'uniandes.edu.co\\' + username.strip()
         ldap_user_pwd = password.strip()
@@ -55,13 +57,15 @@ def ldap_login(username, password):
         data = conn.bind()
         if not data:
             print(f"LDAP: Login error: {conn.last_error} ")
+            msg = str(conn.last_error) + " conn error"
         else:
             print('LDAP: Login successful')
             conn.unbind()
-            return True
+            return True, "Success"
     except Exception as e:
         print('LDAP: Error: ', e)
-    return False
+        msg = str(e) + " Exception"
+    return False, msg
 
 
 def getCityCoordinates(nameParam: str):

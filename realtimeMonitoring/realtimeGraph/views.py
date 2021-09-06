@@ -42,7 +42,6 @@ class DashboardView(TemplateView):
                 cityParam = station.city.name
             else:
                 return context
-
         context["data"] = self.get_last_week_data(userParam, cityParam)
         context["selectedCity"] = City.objects.get(name=cityParam)
         context["measurements"] = self.get_measurements(userParam, cityParam)
@@ -206,7 +205,7 @@ class LoginView(TemplateView):
                 print('Login error', e)
         errors = ''
         for e in form.errors.values():
-            errors += e[0]
+            errors += str(e[0])
 
         return render(request, 'login.html', {'errors': errors, 'username': form.cleaned_data['username'], 'password': form.cleaned_data['password'], })
 

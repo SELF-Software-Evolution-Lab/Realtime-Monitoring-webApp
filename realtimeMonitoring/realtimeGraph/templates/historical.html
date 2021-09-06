@@ -1,11 +1,10 @@
 {% extends 'base.html' %} {% load static %} {% block head %}
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/data.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="{% static 'lib/highcharts-8.1.2/modules/export-data.js' %}"></script>
-<script src="https://code.highcharts.com/modules/accessibility.js"></script>
-{% endblock %} 
-{% block content %}
+<script src="/static/lib/highcharts-9.1.2/highcharts.js"></script>
+<script src="/static/lib/highcharts-9.1.2/modules/data.js"></script>
+<script src="/static/lib/highcharts-9.1.2/modules/exporting.js"></script>
+<script src="/static/lib/highcharts-9.1.2/modules/export-data.js"></script>
+<script src="/static/lib/highcharts-9.1.2/modules/accessibility.js"></script>
+{% endblock %} {% block content %}
 <br />
 {% if cities %}
 <div class="container-fluid">
@@ -36,7 +35,7 @@
           select {
             border: none;
             color: #3498DB;
-            pointer: cursor;
+            cursor: pointer;
           }
         </style>
         <select
@@ -96,10 +95,10 @@
       <div hidden>
   {{data|json_script:'data'}}
 </div>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<script type="text/javascript" src="/static/lib/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/static/lib/moment.min.js"></script>
+<script type="text/javascript" src="/static/lib/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/lib/daterangepicker.css" />
 <script type="application/javascript">
 
   function openCalendar() {
@@ -181,7 +180,7 @@ $(function() {
 
         series: [
           {
-            type: "area",
+            type: "line",
             name: "Value",
             data: data[key].data,
           },
@@ -191,22 +190,34 @@ $(function() {
 </script>
 
 <script>
+
+  function getDateFormatted(ts) {
+    if (ts) {
+      let date = new Date(ts);
+      let year = date.getFullYear();
+      let month = date.getMonth();
+      let day = date.getDate();
+      let hour = date.getHours();
+      let minute = date.getMinutes();
+      let seconds = date.getSeconds();
+      return `${year}-${month}-${day} ${hour}:${minute}:${seconds}`
+    }
+
+  }
+
   function downloadCSV() {
-    
-  
     for (const measure in data) {
       const rows = [
-    ["Usuario", "Ciudad", "Fecha (epoch)", "Variable", "Medición"],
+    ["Usuario", "Ciudad", "Fecha", "Variable", "Medición"],
   ];
       if (Object.hasOwnProperty.call(data, measure)) {
         const element = data[measure];
-        console.log('Element: ', element.data)
         for (const medida of element.data) {
           rows.push(
             [
               "{{selectedUser.login}}",
               "{{selectedCity.name}}",
-              medida[0],
+              getDateFormatted(medida[0]),
               measure,
               medida[1]
             ]

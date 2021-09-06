@@ -18,7 +18,7 @@ from django.urls import path, include
 from . import mqtt
 from . import utils
 
-# utils.register_users()
+utils.register_users()
 mqtt.client.loop_start()
 
 urlpatterns = [
