@@ -40,6 +40,8 @@ class DashboardView(TemplateView):
             station = stations[0] if len(stations) > 0 else None
             if station != None:
                 cityParam = station.city.name
+            else:
+                return context
 
         context["data"] = self.get_last_week_data(userParam, cityParam)
         context["selectedCity"] = City.objects.get(name=cityParam)
@@ -231,16 +233,16 @@ class HistoricalView(TemplateView):
         cityParam = self.kwargs['city'] if 'city' in self.kwargs else None
 
         # Add in a QuerySet of all the users
-        context['cities'] = City.objects.all()
-        context['measurements'] = Measurement.objects.all()
+        # context['cities'] = City.objects.all()
+        # context['measurements'] = Measurement.objects.all()
         context['selectedUser'] = User.objects.get(login=userParam)
         if context['selectedUser'] != None:
-            print('found user')
             stations = Station.objects.filter(
                 user=context['selectedUser'])
             context['cities'] = [station.city for station in stations]
+            if len(context['cities']) > 0 and cityParam == None:
+                cityParam = context['cities'][0].name
             if cityParam != None:
-                print('found city param')
                 context['selectedCity'] = City.objects.get(name=cityParam)
                 if context['selectedCity'] != None:
                     print('found city')
@@ -265,7 +267,7 @@ class HistoricalView(TemplateView):
                         start = datetime.now()
                         start = start - \
                             dateutil.relativedelta.relativedelta(
-                                months=1)
+                                weeks=1)
                         end = datetime.now()
                         end += dateutil.relativedelta.relativedelta(days=1)
                     elif end == None:
@@ -274,6 +276,11 @@ class HistoricalView(TemplateView):
                         start = datetime.fromtimestamp(0)
 
                     context['data'] = {}
+
+                    context['start'] = start.strftime(
+                        "%d/%m/%Y") if start != None else " "
+                    context['end'] = end.strftime(
+                        "%d/%m/%Y") if end != None else " "
 
                     for measure in context['measurements']:
                         data = Data.objects.filter(
@@ -293,7 +300,6 @@ class HistoricalView(TemplateView):
                             'data': contextData
                         }
                     context['data'] = json.dumps(context['data'])
-
         return context
 
 

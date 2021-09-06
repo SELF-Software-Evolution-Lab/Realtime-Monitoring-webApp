@@ -6,6 +6,7 @@
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 {% endblock %} {% block content %}
 <br />
+{% if selectedCity %}
 <div class="container-fluid">
   <div class="row">
     <div class="col-lg-12">
@@ -179,5 +180,8 @@
       }
     }, 3000);
 </script>
+{% else %}
+      {% include "no_data.html" %}  
+{% endif %}
 
 {% endblock %}

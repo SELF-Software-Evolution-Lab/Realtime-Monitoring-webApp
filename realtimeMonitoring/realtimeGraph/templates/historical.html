@@ -4,24 +4,58 @@
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="{% static 'lib/highcharts-8.1.2/modules/export-data.js' %}"></script>
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-{% endblock %} {% block content %}
+{% endblock %} 
+{% block content %}
 <br />
+{% if cities %}
 <div class="container-fluid">
   <div class="row">
     <div class="col-lg-12">
       <div class="row">
         <div class="col-md-6 col-12">
-          <div class="form-group">
-            <label for="daterange">Rango de fechas:</label>
-          <input type="text" name="daterange" value="" readonly role="button" class="form-control"/>
-          </div>
-          </div>
-          <div class="col-md-6 col 12">
-            <button class="btn btn-secondary float-right align-self-center" onclick="downloadCSV()">Exportar CSV</button>
-          </div>
-          </div>
+          <button class="btn btn-secondary float-left align-self-center" onclick="downloadCSV()">Exportar CSV</button>
+        </div>
+        <div class="col-md-4 col-12 my-3 my-md-0">
+        <span onclick="openCalendar()">
+          {{start}}
+           - 
+          {{end}}
+        </span>
+        <button
+          type="button"
+          class="btn btn-light ml-1"
+          name="daterange"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16">
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+          </svg>
+        </button>
+        </div>
+        <div class="col-md-2 col-12">
+        <style>
+          select {
+            border: none;
+            color: #3498DB;
+            pointer: cursor;
+          }
+        </style>
+        <select
+              class="float-right my-3 my-md-0"
+              aria-label="Seleccionar ciudad"
+              aria-placeholder="Ciudad"
+              onchange="this.options[this.selectedIndex].value && (window.location = '/historical/' + this.options[this.selectedIndex].value);"
+            >
+              {% for city in cities %}
+              <option value="{{city.name}}"
+              {% if selectedCity.name == city.name %}
+                selected
+                {% endif %}>{{city.name}}</option>
+              {% endfor %}
+            </select>
         </div>
       </div>
+    </div>
+  </div>
       {% for measure in measurements %}
       <div id="container-historical-{{measure.name}}"></div>
       {% if data %}
@@ -59,34 +93,7 @@
       </div>
       {% endif %}
       {% endfor %}
-      <br />
-      <div class="form-row">
-        {% if selectedUser %}
-        <div class="col">
-          <div class="form-group">
-            <label for="ciudad">Ciudad:</label>
-            <select
-              class="form-control"
-              aria-label="Seleccionar ciudad"
-              aria-placeholder="Ciudad"
-              onchange="this.options[this.selectedIndex].value && (window.location = '/historical/' + this.options[this.selectedIndex].value);"
-            >
-              <option value="">Todas</option>
-              {% for city in cities %}
-              <option value="{{city.name}}"
-              {% if selectedCity.name == city.name %}
-                selected
-                {% endif %}>{{city.name}}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-<div hidden>
+      <div hidden>
   {{data|json_script:'data'}}
 </div>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
@@ -94,11 +101,15 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <script type="application/javascript">
+
+  function openCalendar() {
+    $('button[name="daterange"]').click();  
+  }
+
 $(function() {
-  $('input[name="daterange"]').daterangepicker({
+  $('button[name="daterange"]').daterangepicker({
     opens: 'right'
   }, function(start, end, label) {
-    console.log(typeof(start));
     let startTime = +start;
     let endTime = +end;
     let location = window.location.toString();
@@ -215,5 +226,11 @@ link.remove();
     }
   }
 </script>
+    </div>
+{% else %}
+      {% include "no_data.html" %}  
+{% endif %}
+  </div>
+</div>
 
 {% endblock %}
