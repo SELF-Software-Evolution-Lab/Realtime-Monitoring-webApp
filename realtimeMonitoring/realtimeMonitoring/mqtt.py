@@ -9,23 +9,26 @@ topic = "#"
 
 
 def on_message(client, userdata, message):
-    payload = message.payload.decode("utf-8")
-    print("Message I =", payload)
-    payloadJson = json.loads(payload)
-    print("Message=", payloadJson)
-    topic = message.topic.split('/')
-    print(topic)
-    user = topic[2]
-    location = topic[1]
-    variable = topic[0]
-    user_obj = get_or_create_user(user)
-    location_obj = get_or_create_city(location)
-    unit = 'Celsius' if str(variable).lower() == 'temperature' else '% MC'
-    variable_obj = get_or_create_measurement(variable, unit)
-    sensor_obj = get_or_create_station(user_obj, location_obj)
-    create_data(payloadJson["value"], variable_obj, sensor_obj)
-    #variable = get_variable(topic[2])
-    #create_measurement_object("temperature", payloadJson["value"])
+    try:
+        payload = message.payload.decode("utf-8")
+        print("Message I =", payload)
+        payloadJson = json.loads(payload)
+        print("Message=", payloadJson)
+        topic = message.topic.split('/')
+        print(topic)
+        user = topic[2]
+        location = topic[1]
+        variable = topic[0]
+        user_obj = get_or_create_user(user)
+        location_obj = get_or_create_city(location)
+        unit = 'Celsius' if str(variable).lower() == 'temperature' else '% MC'
+        variable_obj = get_or_create_measurement(variable, unit)
+        sensor_obj = get_or_create_station(user_obj, location_obj)
+        create_data(payloadJson["value"], variable_obj, sensor_obj)
+        #variable = get_variable(topic[2])
+        #create_measurement_object("temperature", payloadJson["value"])
+    except:
+        print('Ocurrió un error procesando el paquete MQTT')
 
 
 print("MQTT Start")
