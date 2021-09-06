@@ -6,6 +6,8 @@ from .views import *
 urlpatterns = [
     path('', DashboardView.as_view(), name='dashboard'),
     path('historical/', HistoricalView.as_view(), name='historical'),
+    path('rema/', RemaView.as_view(), name='rema'),
+    path('rema/<str:measure>', RemaView.as_view(), name='rema'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('historical/<str:city>',

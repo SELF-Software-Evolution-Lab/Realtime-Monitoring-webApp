@@ -20,7 +20,7 @@
     <div class="card-body">
       <h4 class="card-title">Inicia sesión</h4>
       <h6 class="card-subtitle mb-2 text-muted">
-        Ingresa tu usuario uniandes y contraseña del curso
+        Ingresa tu usuario uniandes y contraseña
       </h6>
       <form action="/login/" method="POST">
         {% csrf_token %}
@@ -53,7 +53,7 @@
             value="{{password}}"
           />
           <small id="passHelp" class="form-text text-muted"
-            >La misma contraseña del nodo MCU.</small
+            >Contraseña de tu cuenta uniandes.</small
           >
         </div>
         <button

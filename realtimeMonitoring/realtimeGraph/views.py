@@ -1,5 +1,7 @@
 from datetime import datetime
 import json
+
+from django.db.models.aggregates import Count
 from realtimeMonitoring import utils
 from typing import Dict
 import requests
@@ -301,6 +303,84 @@ class HistoricalView(TemplateView):
                     context['data'] = json.dumps(context['data'])
         return context
 
+class RemaView(TemplateView):
+    template_name = 'rema.html'
+
+    def get(self, request, **kwargs):
+        if request.user == None or not request.user.is_authenticated:
+            return HttpResponseRedirect("/login/")
+        return render(request, self.template_name, self.get_context_data(**kwargs))
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+
+        measureParam = self.kwargs.get('measure', None)
+        selectedMeasure = None
+        measurements = Measurement.objects.all()
+
+        if measureParam != None:
+            selectedMeasure = Measurement.objects.filter(name=measureParam)[0]
+        elif measurements.count() > 0:
+            selectedMeasure = measurements[0]
+
+        cities = City.objects.all()
+        try:
+            start = datetime.fromtimestamp(
+                float(self.request.GET.get('from', None))/1000)
+        except:
+            start = None
+        try:
+            end = datetime.fromtimestamp(
+                float(self.request.GET.get('to', None))/1000)
+        except:
+            end = None
+        if start == None and end == None:
+            start = datetime.now()
+            start = start - \
+                dateutil.relativedelta.relativedelta(
+                    weeks=1)
+            end = datetime.now()
+            end += dateutil.relativedelta.relativedelta(days=1)
+        elif end == None:
+            end = datetime.now()
+        elif start == None:
+            start = datetime.fromtimestamp(0)
+
+        data = []
+
+        for city in cities:
+            stations = Station.objects.filter(city=city)
+            cityData = Data.objects.filter(station__in=stations, measurement__name=selectedMeasure.name,  created_at__gte=start.date(), created_at__lte=end.date())
+            if cityData.count() <= 0:
+                continue
+            minVal = cityData.aggregate(
+                    Min('value'))['value__min']
+            maxVal = cityData.aggregate(
+                    Max('value'))['value__max']
+            avgVal = cityData.aggregate(
+                    Avg('value'))['value__avg']
+            data.append({
+                'name': city.name,
+                'lat': city.lat,
+                'lon': city.lon,
+                'population': stations.count(),
+                'min': minVal if minVal != None else 0,
+                'max': maxVal if maxVal != None else 0,
+                'avg': round(avgVal if avgVal != None else 0, 2),
+            })
+
+        startFormatted = start.strftime("%d/%m/%Y") if start != None else " "
+        endFormatted = end.strftime("%d/%m/%Y") if end != None else " "
+
+        context['measurements'] = measurements
+        context['selectedMeasure'] = selectedMeasure
+        context['cities'] = cities
+        context['start'] = startFormatted
+        context['end'] = endFormatted
+        context['data'] = data
+
+        return context
 
 @ register.filter
 def get_statistic(dictionary, key):
