@@ -82,8 +82,9 @@ class DashboardView(TemplateView):
             datas = Data.objects.filter(station=stationO)
             measurementsO = set([data.measurement for data in datas])
             for measure in measurementsO:
+                # created_at__gte=start.date() Filtro para último día
                 raw_data = Data.objects.filter(
-                    station=stationO, measurement=measure, created_at__gte=start.date()).order_by('-created_at')[:50]
+                    station=stationO, measurement=measure).order_by('-created_at')[:50]
                 data = [[(d.toDict()['created_at'].timestamp() *
                           1000) // 1, d.toDict()['value']] for d in raw_data]
 

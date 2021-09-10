@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-mygg^ha8a4k3y1qz5!=(!iw%vnw3=b5amqz4-m=n-m4n_q_g^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['172.24.98.209', 'localhost',
-                 'iotlab.virtual.uniandes.edu.co']
+ALLOWED_HOSTS = ['172.24.98.209', 'localhost', '157.253.238.90',
+                 'iotlabweb.virtual.uniandes.edu.co']
 
 
 # Application definition

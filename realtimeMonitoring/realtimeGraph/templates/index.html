@@ -29,6 +29,97 @@
           justify-content: center;
           text-align: center;
         }
+        .dot-elastic {
+          position: relative;
+          width: 10px;
+          height: 10px;
+          border-radius: 5px;
+          background-color: white;
+          color: white;
+          animation: dotElastic 1s infinite linear;
+        }
+
+        .dot-elastic::before, .dot-elastic::after {
+          content: '';
+          display: inline-block;
+          position: absolute;
+          top: 0;
+        }
+
+        .dot-elastic::before {
+          left: -15px;
+          width: 10px;
+          height: 10px;
+          border-radius: 5px;
+          background-color: white;
+          color: white;
+          animation: dotElasticBefore 1s infinite linear;
+        }
+
+        .dot-elastic::after {
+          left: 15px;
+          width: 10px;
+          height: 10px;
+          border-radius: 5px;
+          background-color: white;
+          color: white;
+          animation: dotElasticAfter 1s infinite linear;
+        }
+
+        @keyframes dotElasticBefore {
+          0% {
+            transform: scale(1,1);
+          }
+          25% {
+            transform: scale(1,1.5);
+          }
+          50% {
+            transform: scale(1,0.67);
+          }
+          75% {
+            transform: scale(1,1);
+          }
+          100% {
+            transform: scale(1,1);
+          }
+        }
+
+        @keyframes dotElastic {
+          0% {
+            transform: scale(1,1);
+          }
+          25% {
+            transform: scale(1,1);
+          }
+          50% {
+            transform: scale(1,1.5);
+          }
+          75% {
+            transform: scale(1,1);
+          }
+          100% {
+            transform: scale(1,1);
+          }
+        }
+
+        @keyframes dotElasticAfter {
+          0% {
+            transform: scale(1,1);
+          }
+          25% {
+            transform: scale(1,1);
+          }
+          50% {
+            transform: scale(1, 0.67);
+          }
+          75% {
+            transform: scale(1,1.5);
+          }
+          100% {
+            transform: scale(1,1);
+          }
+        }
+
         .connection-indicator {
           position: absolute;
           margin: 24px;
@@ -47,10 +138,10 @@
       </style>
       <div class="graph-container">
         <div class="graph-blocker" id="blocker-{{measure.name}}">
-          Esperando datos...
-        </div>
-        <div class="connection-indicator">
+          Esperando datos 
+          <div class="mx-4 dot-elastic">
 
+          </div>
         </div>
         <div id="container-realtime-{{measure.name}}"></div>
       </div>
@@ -79,6 +170,7 @@
           width: fit-content;
           display: block;
           text-align: center;
+          margin: auto;
           font-size: 220%;
           color: #555;
         }
@@ -265,7 +357,10 @@
         for (const key in newData.result) {
           if (Object.hasOwnProperty.call(newData.result, key)) {
             const element = newData.result[key];
-            if (element.data[element.data.length - 1][0] == data[key].data[data[key].data.length - 1][0]) {
+            if (element.data.length < 1) {
+              qtySamePeriods++;
+            }
+            else if (element.data[element.data.length - 1][0] == data[key].data[data[key].data.length - 1][0]) {
               qtySamePeriods++;
             } else {
               qtySamePeriods = 0;

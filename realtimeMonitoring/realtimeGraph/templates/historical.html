@@ -58,9 +58,38 @@
       {% for measure in measurements %}
       <div id="container-historical-{{measure.name}}"></div>
       {% if data %}
-      <div class="row">
-        <div class="col-4">
-          <div class="form-group">
+      <style>
+        .stat-card {
+          border-radius: 12px;
+          width: 80%;
+          margin: auto;
+          padding: 8px;
+          margin-top: 12px;
+          margin-bottom: 12px;
+          text-align: center;
+          -webkit-box-shadow: 2px 8px 17px -3px rgba(0,0,0,0.43); 
+          box-shadow: 2px 8px 17px -3px rgba(0,0,0,0.43);
+        }
+        .stat-card label {
+          font-size: 130%;
+          font-weight: bold;
+          display: block;
+          text-align: center;
+          color: #3498DB;
+          margin: 0;
+        }
+        .stat-card span {
+          width: fit-content;
+          display: block;
+          text-align: center;
+          margin: auto;
+          font-size: 220%;
+          color: #555;
+        }
+      </style>
+      <div class="row my-5">
+        <div class="col">
+          <div class="stat-card">
             <label for="avg">Promedio:</label>
             {% with name=measure.name %}  
             {% with key=name|add_str:',avg' %}  
@@ -69,8 +98,8 @@
             {% endwith %}
           </div>
         </div>
-        <div class="col-4">
-          <div class="form-group">
+        <div class="col">
+          <div class="stat-card">
             <label for="min">Mínimo:</label>
             {% with name=measure.name %}  
             {% with key=name|add_str:',min' %}  
@@ -79,8 +108,8 @@
             {% endwith %}
           </div>
         </div>
-        <div class="col-4">
-          <div class="form-group">
+        <div class="col">
+          <div class="stat-card">
             <label for="max">Máximo:</label>
             {% with name=measure.name %}  
             {% with key=name|add_str:',max' %}  

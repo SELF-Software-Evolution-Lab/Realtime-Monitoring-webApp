@@ -143,9 +143,17 @@
         });
       });
         var data = JSON.parse(document.getElementById('data').textContent);
-        let preparedData = [];
         let maxStat = data.reduce((accumulator, current) => Math.max(accumulator, current.avg), -1000);
         let minStat = data.reduce((accumulator, current) => Math.min(accumulator, current.avg), 1000);
+        
+        var H = Highcharts.mapChart('container-map', {
+
+chart: {
+    map: 'countries/co/co-all',
+    events: {
+      load: function () {
+        var serie = this.series[0];
+        var ciudades = this.series[1];
         data.forEach(function (d) {
           d.z = parseFloat(d.population);
           d.lat = parseFloat(d.lat);
@@ -154,14 +162,15 @@
             minStat = parseFloat(d.min);
             maxStat = parseFloat(d.max);
           }
-          d.color = getColor(parseFloat(d.avg), minStat, maxStat),
-          d.value = parseFloat(d.population)
-          preparedData.push(d);
+          // d.color = getColor(parseFloat(d.avg), minStat, maxStat),
+          var color = serie.chart.colorAxis[0].toColor(d.avg);
+          d.color = color;
+          d.value = d.avg;
+          ciudades.addPoint(d);
+          serie.addPoint(d);
         });
-        var H = Highcharts.mapChart('container-map', {
-
-chart: {
-    map: 'countries/co/co-all'
+      }
+    }
 },
 
 title: {
@@ -173,22 +182,23 @@ mapNavigation: {
 },
 
 tooltip: {
-    headerFormat: '',
-    pointFormat: '<b>{point.name}</b><br>Lat: {point.lat}, Lon: {point.lon}<br> Min: {point.min}, Max: {point.max}, Avg: {point.avg}'
+    headerFormat: '<strong>{point.key}</strong><br/>',
+    pointFormat: 'Lat: {point.lat}, Lon: {point.lon}<br/> Min: {point.min}<br/> Max: {point.max}<br/> Avg: {point.avg}'
 },
+
 colorAxis: {
         min: -10,
-        max: 40,
+        max: 30,
+        stops: [
+          [0, '#3060cf'],
+          [0.5, '#fffbbc'],
+          [0.9, '#c4463a'],
+        ],
         labels: {
             format: '{value}°C'
         },
-        stops: [
-            [0, '#0000ff'],
-            [0.3, '#6da5ff'],
-            [0.6, '#ffff00'],
-            [1, '#ff0000']
-        ],
-        visible: false,
+        marker: null,
+        visible: true,
     },
 series: [{
     // Use the gb-all map with no data as a basemap
@@ -199,11 +209,17 @@ series: [{
 }, {
     // Specify points using lat/lon
     type: 'mapbubble',
-    name: 'Cities',
+    name: 'Ciudades',
     minSize: '3%',
     maxSize: '12%',
     color: Highcharts.getOptions().colors[1],
-    data: preparedData,
+    dataLabels: {
+      enabled: true,
+      crop: true,
+      formatter: function () {
+        return '<span>' + this.key + '</span><br/><span>' + this.point.avg + '</span>';
+      }
+    },
     }
   ]}
   );
