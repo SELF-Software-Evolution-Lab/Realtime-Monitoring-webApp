@@ -5,18 +5,21 @@ from django.db.models.aggregates import Count
 from realtimeMonitoring import utils
 from typing import Dict
 import requests
+import uuid
+import tempfile
 
 from django.template.defaulttags import register
 from django.contrib.auth import login, logout
 from realtimeGraph.forms import LoginForm
 from django.http import JsonResponse
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http.response import FileResponse, Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseRedirect, HttpResponseServerError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.shortcuts import render
 from random import randint
 from .models import City, Data, Measurement, Role, Station, User
+from realtimeMonitoring import settings
 import dateutil.relativedelta
 from django.db.models import Avg, Max, Min, Sum
 
@@ -225,7 +228,7 @@ class HistoricalView(TemplateView):
     def get(self, request, **kwargs):
         if request.user == None or not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
-        return render(request, self.template_name, self.get_context_data(**kwargs))
+        return render(request, self.template_name)
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -382,6 +385,69 @@ class RemaView(TemplateView):
         context['data'] = data
 
         return context
+
+def download_csv_data(request):
+    start, end = get_daterange(request)
+    data = Data.objects.filter(
+        created_at__gte=start.date(), created_at__lte=end.date())
+
+    tmpFile = tempfile.NamedTemporaryFile(delete=False)
+    filename = tmpFile.name
+
+    with open(filename, 'w', encoding='utf-8') as data_file:
+        headers = ['Usuario', 'Ciudad', 'Fecha', 'Variable', 'Medición']
+        data_file.write(','.join(headers) + '\n')
+        for measure in data:
+            usuario, ciudad, fecha, variable, medicion = 'NA', 'NA', 'NA', 'NA', 'NA'
+            try:
+                usuario = measure.station.user.login
+            except:
+                pass
+            try:
+                ciudad = measure.station.city.name
+            except:
+                pass
+            try:
+                fecha = measure.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                pass
+            try:
+                variable = measure.measurement.name
+            except:
+                pass
+            medicion = measure.value
+
+            data_file.write(
+                ','.join([usuario, ciudad, fecha, variable, str(medicion)]) + '\n')
+
+    return FileResponse(open(filename, 'rb'), filename='datos-historicos-iot.csv')
+
+
+def get_daterange(request):
+    try:
+        start = datetime.fromtimestamp(
+            float(request.GET.get('from', None))/1000)
+    except:
+        start = None
+    try:
+        end = datetime.fromtimestamp(
+            float(request.GET.get('to', None))/1000)
+    except:
+        end = None
+    if start == None and end == None:
+        start = datetime.now()
+        start = start - \
+            dateutil.relativedelta.relativedelta(
+                weeks=1)
+        end = datetime.now()
+        end += dateutil.relativedelta.relativedelta(days=1)
+    elif end == None:
+        end = datetime.now()
+    elif start == None:
+        start = datetime.fromtimestamp(0)
+
+    return start, end
+
 
 @ register.filter
 def get_statistic(dictionary, key):

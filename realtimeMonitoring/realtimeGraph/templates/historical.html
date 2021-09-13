@@ -6,300 +6,171 @@
 <script src="/static/lib/highcharts-9.1.2/modules/accessibility.js"></script>
 {% endblock %} {% block content %}
 <br />
-{% if cities %}
 <div class="container-fluid">
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="row">
-        <div class="col-md-6 col-12">
-          <button class="btn btn-secondary float-left align-self-center" onclick="downloadCSV()">Exportar CSV</button>
-        </div>
-        <div class="col-md-4 col-12 my-3 my-md-0">
-        <span onclick="openCalendar()">
-          {{start}}
-           - 
-          {{end}}
-        </span>
-        <button
-          type="button"
-          class="btn btn-light ml-1"
-          name="daterange"
+  <h1 class="h3 text-center">Datos históricos</h1>
+  <div class="row"></div>
+  <div
+    class="
+      historical-content
+      d-flex
+      align-items-center
+      justify-content-center
+      flex-column
+    "
+  >
+    <img
+      id="timegraph-img"
+      src="/static/media/timegraph-blue.svg"
+      alt="Imagen decorativa con una gráfica y un reloj"
+    />
+    <p>
+      Selecciona un rango de fechas para descargar los datos de las estaciones
+      de monitoreo.
+    </p>
+    <div class="calendar-input">
+      <span id="daterange-label" onclick="openCalendar()">
+        dd/mm/aaaa - dd/mm/aaaa
+      </span>
+      <button type="button" class="btn btn-light ml-1" name="daterange">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-calendar"
+          viewBox="0 0 16 16"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16">
-            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-          </svg>
-        </button>
-        </div>
-        <div class="col-md-2 col-12">
-        <style>
-          select {
-            border: none;
-            color: #3498DB;
-            cursor: pointer;
-          }
-        </style>
-        <select
-              class="float-right my-3 my-md-0"
-              aria-label="Seleccionar ciudad"
-              aria-placeholder="Ciudad"
-              onchange="this.options[this.selectedIndex].value && (window.location = '/historical/' + this.options[this.selectedIndex].value);"
-            >
-              {% for city in cities %}
-              <option value="{{city.name}}"
-              {% if selectedCity.name == city.name %}
-                selected
-                {% endif %}>{{city.name}}</option>
-              {% endfor %}
-            </select>
-        </div>
-      </div>
+          <path
+            d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div class="d-flex flex-row align-items-center">
+      <a
+        id="downloadAnchor"
+        type="button"
+        class="btn btn-primary disabled download"
+        href="/historical/data"
+        data-download="datos-historicos-iot.csv"
+        >Descargar datos</a
+      >
+      <div class="loader indicator" hidden></div>
     </div>
   </div>
-      {% for measure in measurements %}
-      <div id="container-historical-{{measure.name}}"></div>
-      {% if data %}
-      <style>
-        .stat-card {
-          border-radius: 12px;
-          width: 80%;
-          margin: auto;
-          padding: 8px;
-          margin-top: 12px;
-          margin-bottom: 12px;
-          text-align: center;
-          -webkit-box-shadow: 2px 8px 17px -3px rgba(0,0,0,0.43); 
-          box-shadow: 2px 8px 17px -3px rgba(0,0,0,0.43);
-        }
-        .stat-card label {
-          font-size: 130%;
-          font-weight: bold;
-          display: block;
-          text-align: center;
-          color: #3498DB;
-          margin: 0;
-        }
-        .stat-card span {
-          width: fit-content;
-          display: block;
-          text-align: center;
-          margin: auto;
-          font-size: 220%;
-          color: #555;
-        }
-      </style>
-      <div class="row my-5">
-        <div class="col">
-          <div class="stat-card">
-            <label for="avg">Promedio:</label>
-            {% with name=measure.name %}  
-            {% with key=name|add_str:',avg' %}  
-            <p>{{data|get_statistic:key}}</p>
-            {% endwith %} 
-            {% endwith %}
-          </div>
-        </div>
-        <div class="col">
-          <div class="stat-card">
-            <label for="min">Mínimo:</label>
-            {% with name=measure.name %}  
-            {% with key=name|add_str:',min' %}  
-            <p>{{data|get_statistic:key}}</p>
-            {% endwith %} 
-            {% endwith %}
-          </div>
-        </div>
-        <div class="col">
-          <div class="stat-card">
-            <label for="max">Máximo:</label>
-            {% with name=measure.name %}  
-            {% with key=name|add_str:',max' %}  
-            <p>{{data|get_statistic:key}}</p>
-            {% endwith %} 
-            {% endwith %}
-          </div>
-        </div>
-      </div>
-      {% endif %}
-      {% endfor %}
-      <div hidden>
-  {{data|json_script:'data'}}
-</div>
-<script type="text/javascript" src="/static/lib/jquery-3.6.0.min.js"></script>
-<script type="text/javascript" src="/static/lib/moment.min.js"></script>
-<script type="text/javascript" src="/static/lib/daterangepicker.min.js"></script>
-<link rel="stylesheet" type="text/css" href="/static/lib/daterangepicker.css" />
-<script type="application/javascript">
-
-Highcharts.setOptions({
-    lang: {
-            loading: 'Cargando...',
-            months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-            weekdays: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-            shortMonths: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-            exportButtonTitle: "Exportar",
-            printButtonTitle: "Importar",
-            rangeSelectorFrom: "Desde",
-            rangeSelectorTo: "Hasta",
-            rangeSelectorZoom: "Período",
-            downloadPNG: 'Descargar imagen PNG',
-            downloadJPEG: 'Descargar imagen JPEG',
-            downloadPDF: 'Descargar imagen PDF',
-            downloadSVG: 'Descargar imagen SVG',
-            downloadCSV: 'Descargar archivo CSV',
-            downloadXLS: 'Descargar archivo XLS',
-            exitFullscreen: 'Salir de pantalla completa',
-            noData: 'No hay datos',
-            viewData: 'Ver tabla de datos',
-            viewFullscreen: 'Ver en pantalla completa',
-            printChart: 'Imprimir',
-            resetZoom: 'Reiniciar zoom',
-            resetZoomTitle: 'Reiniciar zoom',
-            thousandsSep: ",",
-            decimalPoint: '.'
-        }        
-});
-
-  function openCalendar() {
-    $('button[name="daterange"]').click();  
-  }
-
-$(function() {
-  $('button[name="daterange"]').daterangepicker({
-    opens: 'right'
-  }, function(start, end, label) {
-    let startTime = +start;
-    let endTime = +end;
-    let location = window.location.toString();
-    if (location.includes('?')) {
-      window.location = location.substring(0, location.indexOf('?')) + `?from=${startTime}&to=${endTime}`;
-    } else {
-      window.location += `?from=${startTime}&to=${endTime}`;
-    }
-    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
-  });
-});
-        var data = JSON.parse(JSON.parse(document.getElementById('data').textContent));
-        Object.keys(data).forEach(function(key) {
-          Highcharts.chart("container-historical-"+key, {
-        chart: {
-          zoomType: "x",
-        },
-        title: {
-          text: key,
-        },
-        subtitle: {
-          text:
-          document.ontouchstart === undefined
-              ? "Selecciona una area para hacer zoom"  
-              : "Para hacer zoom, amplía la pantalla con los dedos",
-        },
-        xAxis: {
-          type: "datetime",
-        },
-        yAxis: {
-          title: {
-            text: "Valor",
-          },
-        },
-        legend: {
-          enabled: false,
-        },
-        plotOptions: {
-          area: {
-            fillColor: {
-              linearGradient: {
-                x1: 0,
-                y1: 0,
-                x2: 0,
-                y2: 1,
-              },
-              stops: [
-                [0, Highcharts.getOptions().colors[0]],
-                [
-                  1,
-                  Highcharts.color(Highcharts.getOptions().colors[0])
-                    .setOpacity(0)
-                    .get("rgba"),
-                ],
-              ],
-            },
-            marker: {
-              radius: 2,
-            },
-            lineWidth: 1,
-            states: {
-              hover: {
-                lineWidth: 1,
-              },
-            },
-            threshold: null,
-          },
-        },
-
-        series: [
-          {
-            type: "line",
-            name: "Valor",
-            data: data[key].data,
-          },
-        ],
-      });
-        });    
-</script>
-
-<script>
-
-  function getDateFormatted(ts) {
-    if (ts) {
-      let date = new Date(ts);
-      let year = date.getFullYear();
-      let month = ('0' + (date.getMonth() + 1)).slice(-2);
-      let day = ('0' + date.getDate()).slice(-2);
-      let hour = ('0' + date.getHours()).slice(-2);
-      let minute = ('0' + date.getMinutes()).slice(-2);
-      let seconds = ('0' + date.getSeconds()).slice(-2);
-      return `${year}-${month}-${day} ${hour}:${minute}:${seconds}`
+  <style>
+    .historical-content {
+      width: 30%;
+      margin: auto;
+      min-width: 200px;
+      text-align: center;
     }
 
-  }
+    #downloadAnchor {
+      margin: 24px;
+    }
 
-  function downloadCSV() {
-    for (const measure in data) {
-      const rows = [
-    ["Usuario", "Ciudad", "Fecha", "Variable", "Medición"],
-  ];
-      if (Object.hasOwnProperty.call(data, measure)) {
-        const element = data[measure];
-        for (const medida of element.data) {
-          rows.push(
-            [
-              "{{selectedUser.login}}",
-              "{{selectedCity.name}}",
-              getDateFormatted(medida[0]),
-              measure,
-              medida[1]
-            ]
-          );
-        }
+    #timegraph-img {
+      width: 12%;
+      min-width: 120px;
+      height: auto;
+      display: block;
+      margin: auto;
+      margin-top: 48px;
+      margin-bottom: 24px;
+    }
+    .disabled {
+      background-color: gray !important;
+      border: gray !important;
+      pointer-events: none;
+    }
+
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #555;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
-      let csvContent = "data:text/csv;charset=utf-8," 
-    + rows.map(e => e.join(",")).join("\n");
-    var encodedUri = encodeURI(csvContent);
-var link = document.createElement("a");
-link.setAttribute("href", encodedUri);
-link.setAttribute("download", measure+"-data.csv");
-document.body.appendChild(link); // Required for FF
-
-link.click();
-link.remove();
+      100% {
+        transform: rotate(360deg);
+      }
     }
-  }
-</script>
-    </div>
-{% else %}
-      {% include "no_data.html" %}  
-{% endif %}
-  </div>
-</div>
+  </style>
+  <script
+    type="text/javascript"
+    src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"
+  ></script>
+  <script
+    type="text/javascript"
+    src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"
+  ></script>
+  <script
+    type="text/javascript"
+    src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"
+  ></script>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"
+  />
+  <script type="application/javascript">
+    function openCalendar() {
+      $('button[name="daterange"]').click();
+    }
 
+    $(function () {
+      $('button[name="daterange"]').daterangepicker(
+        {
+          opens: "right",
+        },
+        function (start, end, label) {
+          let startTime = +start;
+          let endTime = +end;
+
+          $("#daterange-label").text(
+            start.format("DD/MM/YYYY") + " - " + end.format("DD/MM/YYYY")
+          );
+
+          $("#downloadAnchor")
+            .attr("href", `/historical/data?from=${startTime}&to=${endTime}`)
+            .removeClass("disabled");
+        }
+      );
+    });
+  </script>
+  <script type="application/javascript">
+    $(".download").on("click", function () {
+      // show the loading indicator
+      $(".indicator").show();
+      $(".loader").attr("hidden", false);
+      $("#downloadAnchor").addClass("disabled");
+
+      // get the filename
+      var fname = $(this).attr("data-download");
+      var url = $(this).attr("href");
+
+      $.get(url, function (file) {
+        var dataURI = "data:text/csv;charset=utf-8," + file;
+        $("<a>" + fname + "</a>")
+          .attr({
+            download: fname,
+            href: dataURI,
+          })[0]
+          .click();
+
+        // hide the loading indicator
+        $(".indicator").hide();
+        $(".loader").attr("hidden", true);
+        $("#downloadAnchor").removeClass("disabled");
+      });
+    });
+  </script>
+</div>
 {% endblock %}
