@@ -209,8 +209,13 @@ tooltip: {
 },
 
 colorAxis: {
+        {% if selectedMeasure.name == 'temperatura' %}
         min: -10,
         max: 30,
+        {% else %}
+        min: 0,
+        max: 100,
+        {% endif %}
         stops: [
           [0, '#3060cf'],
           [0.5, '#fffbbc'],
