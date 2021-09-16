@@ -1,6 +1,7 @@
 {% extends 'base.html' %} {% load static %} {% block head %}
 <script src="/static/lib/proj4.js"></script>
 <script src="/static/lib/highmaps/highmaps.js"></script>
+<script src="/static/lib/highmaps/highcharts-more.js"></script>
 <script src="/static/lib/highmaps/modules/data.js"></script>
 <script src="/static/lib/highmaps/modules/exporting.js"></script>
 <script src="/static/lib/highmaps/modules/offline-exporting.js"></script>
@@ -60,7 +61,12 @@
       </div>
     </div>
   </div>
+  {% if data %}
+  
       <div id="container-map"></div>
+      {% else %}
+      {% include "no_map_data.html" %}  
+      {% endif %}
       <div hidden>
         {{data|json_script:'data'}}
       </div>
@@ -174,9 +180,20 @@ chart: {
           ciudades.addPoint(d);
           serie.addPoint(d);
         });
+        this.isDirtyLegend = true;
+        this.redraw();
       }
     }
 },
+
+legend: {
+        enabled: true,
+        y: -40,
+        bubbleLegend: {
+            enabled: true,
+            zIndex: 5,
+        }
+    },
 
 title: {
     text: 'Datos por ciudad'
@@ -200,7 +217,7 @@ colorAxis: {
           [0.9, '#c4463a'],
         ],
         labels: {
-            format: '{value}°C'
+            format: '{value}{{selectedMeasure.unit}}'
         },
         marker: null,
         visible: true,
@@ -215,9 +232,9 @@ series: [{
     // Specify points using lat/lon
     type: 'mapbubble',
     name: 'Ciudades',
-    minSize: '3%',
-    maxSize: '12%',
-    color: Highcharts.getOptions().colors[1],
+    minSize: '2%',
+    maxSize: '16%',
+    color: Highcharts.getOptions().colors[0],
     dataLabels: {
       enabled: true,
       crop: true,
@@ -225,6 +242,7 @@ series: [{
         return '<span>' + this.key + '</span><br/><span>' + this.point.avg + '</span>';
       }
     },
+    showInLegend: false,
     }
   ]}
   );
