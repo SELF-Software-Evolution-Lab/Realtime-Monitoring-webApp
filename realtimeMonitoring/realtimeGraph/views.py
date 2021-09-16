@@ -147,21 +147,18 @@ def get_or_create_user(login):
 
 
 def get_or_create_city(name):
-    try:
-        city = City.objects.get(name=name)
-    except City.DoesNotExist:
+    city, created = City.objects.get_or_create(name=name)
+    if city.lat == None:
         lat, lon = utils.getCityCoordinates(name)
-        city = City(name=name, lat=lat, lon=lon)
+        city.lat = lat
+        city.lon = lon
         city.save()
+        
     return(city)
 
 
 def get_or_create_station(user, city):
-    try:
-        station = Station.objects.get(user=user, city=city)
-    except Station.DoesNotExist:
-        station = Station(user=user, city=city)
-        station.save()
+    station, created = Station.objects.get_or_create(user=user, city=city)
     return(station)
 
 
@@ -171,12 +168,7 @@ def get_station(user, city):
 
 
 def get_or_create_measurement(name, unit):
-    try:
-        measurement = Measurement.objects.get(name=name, unit=unit)
-    except Measurement.DoesNotExist:
-        measurement = Measurement(
-            name=name, unit=unit)
-        measurement.save()
+    measurement, created = Measurement.objects.get_or_create(name=name, unit=unit)
     return(measurement)
 
 

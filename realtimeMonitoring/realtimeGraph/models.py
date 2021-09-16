@@ -43,6 +43,8 @@ class City(models.Model):
 class Station(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
     city = models.ForeignKey(City, on_delete=models.CASCADE, default=None)
+    class Meta:
+        unique_together = (('user', 'city'),)
     last_activity = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
 

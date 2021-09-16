@@ -18,6 +18,8 @@ def register_users():
         lines = users_file.readlines()
         for line in lines:
             [login, passwd] = line.split(':')
+            login = login.strip()
+            passwd = passwd.strip()
             try:
                 role = Role.objects.get(name="USER")
                 userDB, userCreated = User.objects.get_or_create(login=login, defaults={
