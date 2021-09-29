@@ -56,9 +56,12 @@ void mqtt_connect()
     if (client.connect(HOSTNAME, MQTT_USER, MQTT_PASS)) {
       Serial.println("connected.");
     } else {
-      Serial.print("failed, status code =");
-      Serial.print(client.state());
-      Serial.println(". Try again in 5 seconds.");
+      Serial.println("Problema con la conexión, revise los valores de las constantes MQTT");
+      Serial.print("Código de error = ");
+      Serial.println(client.state());
+      if ( client.state() == MQTT_CONNECT_UNAUTHORIZED ) {
+        ESP.deepSleep(0);
+      }
       /* Espera 5 segundos antes de volver a intentar */
       delay(5000);
     }
