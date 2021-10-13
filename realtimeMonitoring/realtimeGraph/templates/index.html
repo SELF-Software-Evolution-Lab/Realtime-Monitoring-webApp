@@ -182,7 +182,7 @@
             <label for="avg">Promedio</label>
             {% with name=measure.name %}  
             {% with key=name|add_str:',avg' %}  
-            <span id="avg-{{measure.name}}">{{data|get_statistic:key}}</span>
+            <span id="avg-{{measure.name}}" class="stat">{{data|get_statistic:key}}</span>
             {% endwith %} 
             {% endwith %}
           </div>
@@ -192,7 +192,7 @@
             <label for="min">Mínimo</label>
             {% with name=measure.name %}  
             {% with key=name|add_str:',min' %}  
-            <span id="min-{{measure.name}}">{{data|get_statistic:key}}</span>
+            <span id="min-{{measure.name}}" class="stat">{{data|get_statistic:key}}</span>
             {% endwith %} 
             {% endwith %}
           </div>
@@ -202,7 +202,7 @@
             <label for="max">Máximo</label>
             {% with name=measure.name %}  
             {% with key=name|add_str:',max' %}  
-            <span id="max-{{measure.name}}">{{data|get_statistic:key}}</span>
+            <span id="max-{{measure.name}}" class="stat">{{data|get_statistic:key}}</span>
             {% endwith %} 
             {% endwith %}
           </div>
@@ -358,27 +358,32 @@
         for (const key in newData.result) {
           if (Object.hasOwnProperty.call(newData.result, key)) {
             const element = newData.result[key];
+            console.log("Element: ", element);
             if (element.data.length < 1) {
               qtySamePeriods++;
             }
-            else if (element.data[element.data.length - 1][0] == data[key].data[data[key].data.length - 1][0]) {
+            else if (element.data[0][0] == data[key].data[0][0]) {
               qtySamePeriods++;
             } else {
               qtySamePeriods = 0;
             }
             data = newData.result;
             let blockerElement = document.getElementById('blocker-' + key);
+            let stats = document.getElementsByClassName('stat');
             if (qtySamePeriods > 2) {
               blockerElement.style.display = 'flex';
+              [].forEach.call(stats, stat => {
+                stat.innerHTML = "-";
+              });
             } else {
               blockerElement.style.display = 'none';
+              let minElement = document.getElementById('min-' + key);
+              minElement.innerText = element.min;
+              let maxElement = document.getElementById('max-' + key);
+              maxElement.innerText = element.max;
+              let avgElement = document.getElementById('avg-' + key);
+              avgElement.innerText = element.avg;
             }
-            let minElement = document.getElementById('min-' + key);
-            minElement.innerText = element.min;
-            let maxElement = document.getElementById('max-' + key);
-            maxElement.innerText = element.max;
-            let avgElement = document.getElementById('avg-' + key);
-            avgElement.innerText = element.avg;
 ;            charts[key].update({
               series: [
           {

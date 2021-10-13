@@ -19,9 +19,12 @@ def on_message(client, userdata, message):
         user = topic[2]
         location = topic[1]
         variable = topic[0]
+        if location == "ciudad":
+            print("Se salta el registro por nombre incorrecto de ciudad")
+            raise Exception("Ciudad incorrecta")
         user_obj = get_or_create_user(user)
         location_obj = get_or_create_city(location)
-        unit = 'Celsius' if str(variable).lower() == 'temperatura' else '% MC'
+        unit = '°C' if str(variable).lower() == 'temperatura' else '%'
         variable_obj = get_or_create_measurement(variable, unit)
         sensor_obj = get_or_create_station(user_obj, location_obj)
         create_data(payloadJson["value"], variable_obj, sensor_obj)

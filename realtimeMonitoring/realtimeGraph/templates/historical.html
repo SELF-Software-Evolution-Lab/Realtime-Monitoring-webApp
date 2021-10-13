@@ -55,6 +55,7 @@
         data-download="datos-historicos-iot.csv"
         >Descargar datos</a
       >
+      <a id="csvLink" hidden>datos-historicos-iot.csv</a>
       <div class="loader indicator" hidden></div>
     </div>
   </div>
@@ -133,7 +134,7 @@
           );
 
           $("#downloadAnchor")
-            .attr("href", `/historical/data?from=${startTime}&to=${endTime}`)
+            .attr("name", `/historical/data?from=${startTime}&to=${endTime}`)
             .removeClass("disabled");
         }
       );
@@ -148,11 +149,11 @@
 
       // get the filename
       var fname = $(this).attr("data-download");
-      var url = $(this).attr("href");
+      var url = $(this).attr("name");
 
       $.get(url, function (file) {
         var dataURI = "data:text/csv;charset=utf-8," + file;
-        $("<a>" + fname + "</a>")
+        $("#csvLink")
           .attr({
             download: fname,
             href: dataURI,

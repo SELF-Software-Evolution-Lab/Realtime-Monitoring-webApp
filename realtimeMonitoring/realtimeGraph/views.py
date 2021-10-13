@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import time
 
 from django.db.models.aggregates import Count
 from realtimeMonitoring import utils
@@ -379,6 +380,9 @@ class RemaView(TemplateView):
         return context
 
 def download_csv_data(request):
+    startT = time.time()
+    print('####### VIEW #######')
+    print('Processing CSV')
     start, end = get_daterange(request)
     data = Data.objects.filter(
         created_at__gte=start.date(), created_at__lte=end.date())
@@ -411,6 +415,9 @@ def download_csv_data(request):
 
             data_file.write(
                 ','.join([usuario, ciudad, fecha, variable, str(medicion)]) + '\n')
+    endT = time.time()
+    print("##### VIEW ######")
+    print("Processed. Time: ", endT - startT)
 
     return FileResponse(open(filename, 'rb'), filename='datos-historicos-iot.csv')
 
