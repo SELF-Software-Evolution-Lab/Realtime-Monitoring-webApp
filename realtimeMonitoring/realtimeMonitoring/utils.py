@@ -1,8 +1,12 @@
 
-from realtimeGraph.models import Role, User
+from realtimeGraph.models import Role, User, Data
 from django.contrib.auth.models import User as AuthUser
 from ldap3 import Server, Connection, ALL, SUBTREE, Tls, NTLM
+from django_cron import CronJobBase, Schedule
+from datetime import datetime
 import ssl
+import time
+import os
 import requests
 from . import settings
 
@@ -82,3 +86,102 @@ def getCityCoordinates(nameParam: str):
             lat = data[0]['latitude']
             lon = data[0]['longitude']
     return lat, lon
+
+
+def writeDataCSVFile():
+    print("Getting time for csv req")
+    startT = time.time()
+    print('####### VIEW #######')
+    print('Processing CSV')
+    data = Data.objects.all().order_by("created_at")
+    filepath = settings.BASE_DIR / \
+        "realtimeMonitoring/static/data/datos-historicos-iot.csv"
+
+    with open(filepath, 'w', encoding='utf-8') as data_file:
+        print("Filename:", filepath)
+        headers = ['Usuario', 'Ciudad', 'Fecha', 'Variable', 'Medición']
+        data_file.write(','.join(headers) + '\n')
+        print("CSV: Head written")
+        print("CSV: Len of data:", len(data))
+        lines = ""
+        for measure in data:
+            usuario, ciudad, fecha, variable, medicion = 'NA', 'NA', 'NA', 'NA', 'NA'
+            try:
+                usuario = measure.station.user.login
+            except:
+                pass
+            try:
+                ciudad = measure.station.city.name
+            except:
+                pass
+            try:
+                fecha = measure.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                pass
+            try:
+                variable = measure.measurement.name
+            except:
+                pass
+            medicion = measure.value
+            lines += ','.join([usuario, ciudad, fecha,
+                              variable, str(medicion)]) + '\n'
+        data_file.write(lines)
+    endT = time.time()
+    print("Processed CSV file. Time: ", endT - startT)
+
+
+def updateCSVFile():
+    filepath = settings.BASE_DIR / \
+        "realtimeMonitoring/static/data/datos-historicos-iot.csv"
+    last_date = datetime.now()
+    with open(filepath, 'rb') as data_file:
+        last_register = getLastLine(data_file).strip()
+        strDate = last_register.split(",")[2]
+        last_date = datetime.strptime(strDate, '%Y-%m-%d %H:%M:%S')
+    new_data = Data.objects.filter(
+        created_at__gt=last_date, created_at__lte=datetime.now())
+    print("New data: ", len(new_data))
+    with open(filepath, 'a', encoding='utf-8') as data_file:
+        lines = ""
+        for measure in new_data:
+            usuario, ciudad, fecha, variable, medicion = 'NA', 'NA', 'NA', 'NA', 'NA'
+            try:
+                usuario = measure.station.user.login
+            except:
+                pass
+            try:
+                ciudad = measure.station.city.name
+            except:
+                pass
+            try:
+                fecha = measure.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                pass
+            try:
+                variable = measure.measurement.name
+            except:
+                pass
+            medicion = measure.value
+            lines += ','.join([usuario, ciudad, fecha,
+                              variable, str(medicion)]) + '\n'
+        data_file.write(lines)
+
+
+class UpdateCSVCron(CronJobBase):
+    RUN_EVERY_MINS = 1
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    code = 'realtimeMonitoring.updateCSVCronJob'
+
+    def do(self):
+        updateCSVFile()
+
+
+def getLastLine(file):
+    try:  # catch OSError in case of a one line file
+        file.seek(-2, os.SEEK_END)
+        while file.read(1) != b'\n':
+            file.seek(-2, os.SEEK_CUR)
+    except OSError:
+        file.seek(0)
+    last_line = file.readline().decode()
+    return last_line

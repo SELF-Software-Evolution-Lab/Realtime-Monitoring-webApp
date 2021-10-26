@@ -39,7 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',
     'realtimeGraph',
+]
+
+CRONJOBS = [
+    ('*/30 * * * *', 'realtimeMonitoring.utils.updateCSVFile')
 ]
 
 MIDDLEWARE = [

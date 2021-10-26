@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.fields import DateTimeField
 import datetime
+from django.utils import timezone
 
 USER_ROLE_ID = 1
 
@@ -67,7 +68,7 @@ class Data(models.Model):
     measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
     station = models.ForeignKey(Station, on_delete=models.CASCADE)
     value = models.FloatField(blank=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def str(self):
         return '{} {}'.format(self.value, self.created_at)

@@ -3,6 +3,7 @@ import json
 import ssl
 import traceback
 from realtimeGraph.views import get_or_create_measurement, get_or_create_user, get_or_create_city, get_or_create_station, create_data
+from django.utils import timezone
 
 broker_address = "iotlab.virtual.uniandes.edu.co"
 broker_port = 8082
@@ -37,6 +38,7 @@ def on_message(client, userdata, message):
 
 print("MQTT Start")
 client = mqtt.Client('')
+print("Time: ", timezone.now())
 client.on_message = on_message
 client.tls_set(ca_certs='/home/profesor/ca-prod.crt',
                tls_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_NONE)

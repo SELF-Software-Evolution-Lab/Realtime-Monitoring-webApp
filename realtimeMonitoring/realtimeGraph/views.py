@@ -32,25 +32,33 @@ class DashboardView(TemplateView):
         if request.user == None or not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
         return render(request, 'index.html', self.get_context_data(**kwargs))
+        #return render(request, 'no_data.html')
 
     def get_context_data(self, **kwargs):
         super().get_context_data(**kwargs)
         context = {}
-
-        userParam = self.request.user.username
-        cityParam = self.request.GET.get('city', None)
-
-        if cityParam == None:
-            user = User.objects.get(login=userParam)
-            stations = Station.objects.filter(user=user)
-            station = stations[0] if len(stations) > 0 else None
-            if station != None:
-                cityParam = station.city.name
-            else:
-                return context
-        context["data"] = self.get_last_week_data(userParam, cityParam)
-        context["selectedCity"] = City.objects.get(name=cityParam)
-        context["measurements"] = self.get_measurements(userParam, cityParam)
+        print("CONTEXT: getting context data")
+        try:
+            userParam = self.request.user.username
+            cityParam = self.request.GET.get('city', None)
+            print("CONTEXT: getting user and city: ", userParam, cityParam)
+            if cityParam == None:
+                user = User.objects.get(login=userParam)
+                print("CONTEXT: getting user db: ", user)
+                stations = Station.objects.filter(user=user)
+                print("CONTEXT: getting stations db: ", stations)
+                station = stations[0] if len(stations) > 0 else None
+                print("CONTEXT: getting first station: ", station)
+                if station != None:
+                    cityParam = station.city.name
+                else:
+                    return context
+            print("CONTEXT: getting last week data and measurements")
+            context["data"], context["measurements"] = self.get_last_week_data(userParam, cityParam)
+            print("CONTEXT: got last week data, now getting city: ", cityParam)
+            context["selectedCity"] = City.objects.get(name=cityParam)
+        except Exception as e:
+            print("Error get_context_data. User: " + userParam, e)
         return context
 
     @method_decorator(csrf_exempt)
@@ -65,8 +73,7 @@ class DashboardView(TemplateView):
         stationO = Station.objects.get(user=userO, city=cityO)
         if stationO == None:
             raise 'No hay datos para esa ubicación'
-        datas = Data.objects.filter(station=stationO)
-        measurementsO = set([data.measurement for data in datas])
+        measurementsO = Measurement.objects.all()
         return measurementsO
 
     def get_last_week_data(self, user, city):
@@ -78,17 +85,33 @@ class DashboardView(TemplateView):
         try:
             userO = User.objects.get(login=user)
             cityO = City.objects.get(name=city)
+            print("LAST_WEEK: Got user and city:", user, city)
             if userO == None or cityO == None:
                 raise 'No existe el usuario o ciudad indicada'
             stationO = Station.objects.get(user=userO, city=cityO)
+            print("LAST_WEEK: Got station:", user, city, stationO)
             if stationO == None:
                 raise 'No hay datos para esa ubicación'
-            datas = Data.objects.filter(station=stationO)
+            print("LAST_WEEK: Filtering measures of ", stationO)
+            datas = Data.objects.filter(station=stationO, created_at__gte=start).order_by('-created_at')[:100]
+            print("LAST_WEEK: Filtered data: len ", len(datas))
+            cnt = 0
+            while len(datas) <= 0 and cnt < 3:
+                start = start - \
+                    dateutil.relativedelta.relativedelta(weeks=1)
+                datas = Data.objects.filter(station=stationO, created_at__gte=start).order_by('-created_at')[:100]
+                cnt += 1
+            if len(datas) <= 0:
+                start = datetime.fromtimestamp(0)
+                datas = Data.objects.filter(station=stationO).order_by('-created_at')[:100]
+            print("LAST_WEEK: Filtered data: len ", len(datas))
             measurementsO = set([data.measurement for data in datas])
+            print("LAST_WEEK: Measurements got: ", measurementsO)
             for measure in measurementsO:
+                print("LAST_WEEK: Filtering measure: ", measure)
                 # created_at__gte=start.date() Filtro para último día
-                raw_data = Data.objects.filter(
-                    station=stationO, measurement=measure).order_by('-created_at')[:50]
+                raw_data = Data.objects.filter(station=stationO, created_at__gte=start, measurement=measure).order_by('-created_at')[:50]
+                print("LAST_WEEK: Raw data: ", len(raw_data))
                 data = [[(d.toDict()['created_at'].timestamp() *
                           1000) // 1, d.toDict()['value']] for d in raw_data]
 
@@ -107,7 +130,7 @@ class DashboardView(TemplateView):
         except Exception as error:
             print('Error en consulta de datos:', error)
 
-        return result
+        return result, measurementsO
 
     def post(self, request, *args, **kwargs):
         data = {}
@@ -380,41 +403,52 @@ class RemaView(TemplateView):
         return context
 
 def download_csv_data(request):
+    print("Getting time for csv req")
     startT = time.time()
     print('####### VIEW #######')
     print('Processing CSV')
     start, end = get_daterange(request)
+    print("Start, end", start, end)
     data = Data.objects.filter(
         created_at__gte=start.date(), created_at__lte=end.date())
-
+    print("Data ref got")
     tmpFile = tempfile.NamedTemporaryFile(delete=False)
+    print("Creating file")
     filename = tmpFile.name
 
     with open(filename, 'w', encoding='utf-8') as data_file:
+        print("Filename:", filename)
         headers = ['Usuario', 'Ciudad', 'Fecha', 'Variable', 'Medición']
         data_file.write(','.join(headers) + '\n')
-        for measure in data:
-            usuario, ciudad, fecha, variable, medicion = 'NA', 'NA', 'NA', 'NA', 'NA'
-            try:
-                usuario = measure.station.user.login
-            except:
-                pass
-            try:
-                ciudad = measure.station.city.name
-            except:
-                pass
-            try:
-                fecha = measure.created_at.strftime("%Y-%m-%d %H:%M:%S")
-            except:
-                pass
-            try:
-                variable = measure.measurement.name
-            except:
-                pass
-            medicion = measure.value
+        print("Head written")
+        print("Len of data:", len(data))
+        try:
+            data_file.write(str(data))
+        except Exception as e:
+            print(e)
+        # for measure in data:
+        #     usuario, ciudad, fecha, variable, medicion = 'NA', 'NA', 'NA', 'NA', 'NA'
+        #     try:
+        #         usuario = measure.station.user.login
+        #     except:
+        #         pass
+        #     try:
+        #         ciudad = measure.station.city.name
+        #     except:
+        #         pass
+        #     try:
+        #         fecha = measure.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        #     except:
+        #         pass
+        #     try:
+        #         variable = measure.measurement.name
+        #     except:
+        #         pass
+        #     medicion = measure.value
+        #     print("Writing: ", usuario, ciudad, fecha, variable, str(medicion))
 
-            data_file.write(
-                ','.join([usuario, ciudad, fecha, variable, str(medicion)]) + '\n')
+        #     data_file.write(
+        #         ','.join([usuario, ciudad, fecha, variable, str(medicion)]) + '\n')
     endT = time.time()
     print("##### VIEW ######")
     print("Processed. Time: ", endT - startT)
