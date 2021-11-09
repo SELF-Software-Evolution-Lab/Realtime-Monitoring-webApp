@@ -44,7 +44,7 @@ def register_users():
         print(
             f'Utils: Already users: {registered_count}, \
                  Registered users: {registering_count}, \
-                     Error users: {error_count}, Total success: \
+                     Error use rs: {error_count}, Total success: \
                          {registered_count+ registering_count}'
         )
 

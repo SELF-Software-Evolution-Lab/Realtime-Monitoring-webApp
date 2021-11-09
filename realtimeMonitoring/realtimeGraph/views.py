@@ -181,8 +181,8 @@ def get_or_create_city(name):
     return(city)
 
 
-def get_or_create_station(user, city):
-    station, created = Station.objects.get_or_create(user=user, city=city)
+def get_or_create_station(user, city, measurement):
+    station, created = Station.objects.get_or_create(user=user, city=city, measurement=measurement)
     return(station)
 
 
@@ -196,8 +196,8 @@ def get_or_create_measurement(name, unit):
     return(measurement)
 
 
-def create_data(value, measurement, station):
-    data = Data(value=value, measurement=measurement, station=station)
+def create_data(value, station):
+    data = Data(value=value, station=station)
     data.save()
     return(data)
 

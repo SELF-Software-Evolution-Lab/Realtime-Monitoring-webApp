@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'realtimeMonitoring.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'iotmonitoring',
+        'NAME': 'iottimescale',
         'USER': 'iotmonitoring',
         'PASSWORD': 'monitoriaIOT2021*',
         'HOST': 'localhost',

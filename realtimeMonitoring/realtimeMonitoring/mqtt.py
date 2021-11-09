@@ -27,8 +27,8 @@ def on_message(client, userdata, message):
         location_obj = get_or_create_city(location)
         unit = '°C' if str(variable).lower() == 'temperatura' else '%'
         variable_obj = get_or_create_measurement(variable, unit)
-        sensor_obj = get_or_create_station(user_obj, location_obj)
-        create_data(payloadJson["value"], variable_obj, sensor_obj)
+        sensor_obj = get_or_create_station(user_obj, location_obj, variable_obj)
+        create_data(payloadJson["value"], sensor_obj)
         #variable = get_variable(topic[2])
         #create_measurement_object("temperature", payloadJson["value"])
     except Exception as e:
@@ -40,7 +40,7 @@ print("MQTT Start")
 client = mqtt.Client('')
 print("Time: ", timezone.now())
 client.on_message = on_message
-client.tls_set(ca_certs='/home/profesor/ca-prod.crt',
+client.tls_set(ca_certs='/home/javos/ca.crt',
                tls_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_NONE)
 client.username_pw_set('uniandes', '*uniandesIOT2021!')
 client.connect(broker_address, broker_port, 60)

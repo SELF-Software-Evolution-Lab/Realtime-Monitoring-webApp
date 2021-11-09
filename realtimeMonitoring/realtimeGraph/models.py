@@ -1,6 +1,6 @@
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models.fields import DateTimeField
-import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 
 USER_ROLE_ID = 1
@@ -15,7 +15,7 @@ class Role(models.Model):
 
 
 class User(models.Model):
-    login = models.CharField(max_length=50, unique=True, blank=False)
+    login = models.CharField(primary_key=True, max_length=50, unique=True, blank=False)
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True)
     password = models.CharField(max_length=50, blank=True)
@@ -41,18 +41,6 @@ class City(models.Model):
         return '{}'.format(self.name)
 
 
-class Station(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-    city = models.ForeignKey(City, on_delete=models.CASCADE, default=None)
-    class Meta:
-        unique_together = (('user', 'city'),)
-    last_activity = models.DateTimeField(auto_now_add=True)
-    active = models.BooleanField(default=True)
-
-    def str(self):
-        return '%s %s %s' % (self.user, self.city, self.last_activity)
-
-
 class Measurement(models.Model):
     name = models.CharField(max_length=50, blank=False)
     unit = models.CharField(max_length=50, blank=False)
@@ -63,20 +51,45 @@ class Measurement(models.Model):
     def str(self):
         return '{} {}'.format(self.name, self.unit)
 
-
-class Data(models.Model):
+class Station(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
     measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
-    station = models.ForeignKey(Station, on_delete=models.CASCADE)
-    value = models.FloatField(blank=False)
-    created_at = models.DateTimeField(default=timezone.now)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, default=None)
+    class Meta:
+        unique_together = ('user', 'city', 'measurement',)
+    last_activity = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
 
     def str(self):
-        return '{} {}'.format(self.value, self.created_at)
+        return '%s %s %s' % (self.user, self.city, self.last_activity)
+
+class Data(models.Model):
+    station = models.ForeignKey(Station, on_delete=models.CASCADE)
+    value = models.FloatField(blank=False)
+    time = models.DateTimeField(primary_key=True, default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        self.save_and_smear_timestamp(*args, **kwargs)
+    
+    def save_and_smear_timestamp(self, *args, **kwargs):
+        """Recursivly try to save by incrementing the timestamp on duplicate error"""
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError as exception:
+            # Only handle the error:
+            #   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "1_1_farms_sensorreading_pkey"
+            #   DETAIL:  Key ("time")=(2020-10-01 22:33:52.507782+00) already exists.
+            if all (k in exception.args[0] for k in ("Key","time", "already exists")):
+                # Increment the timestamp by 1 µs and try again
+                self.time = self.time + timedelta(microseconds=1)
+                self.save_and_smear_timestamp(*args, **kwargs)
+
+    def str(self):
+        return '{} {}'.format(self.value, self.time)
 
     def toDict(self):
         return {
-            'measurement': str(self.measurement),
             'station': str(self.station),
             'value': self.value,
-            'created_at': self.created_at
+            'created_at': self.time
         }
