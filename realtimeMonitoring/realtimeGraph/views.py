@@ -1,13 +1,14 @@
 from datetime import datetime
 import json
+from os import name
 import time
 
 from django.db.models.aggregates import Count
-from realtimeMonitoring import utils
 from typing import Dict
 import requests
 import uuid
 import tempfile
+from realtimeMonitoring.utils import getCityCoordinates
 
 from django.template.defaulttags import register
 from django.contrib.auth import login, logout
@@ -19,7 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.shortcuts import render
 from random import randint
-from .models import City, Data, Measurement, Role, Station, User
+from .models import City, Country, Data, Location, Measurement, Role, State, Station, User
 from realtimeMonitoring import settings
 import dateutil.relativedelta
 from django.db.models import Avg, Max, Min, Sum
@@ -28,12 +29,41 @@ from django.db.models import Avg, Max, Min, Sum
 class DashboardView(TemplateView):
     template_name = 'index.html'
 
+    '''
+    Get de Index. Si el usuario no está logueado se redirige a la página de login.
+    Envía la página de template de Index con los datos de contexto procesados en get_context_data.
+    '''
     def get(self, request, **kwargs):
         if request.user == None or not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
         return render(request, 'index.html', self.get_context_data(**kwargs))
-        #return render(request, 'no_data.html')
 
+    '''
+    Se procesan los datos para cargar el contexto del template.
+    El template espera un contexto de este tipo:
+    {
+        "data": {
+            "temperatura": {
+                "min": float,
+                "max": float,
+                "avg": float,
+                "data": [
+                    (timestamp1, medición1),
+                    (timestamp2, medición2),
+                    (timestamp3, medición3),
+                    ...
+                ]
+            },
+            "variable2" : {min,max,avg,data},
+            ...
+        },
+        "measurements": [Measurement0, Measurement1, ...],
+        "selectedCity": City,
+        "selectedState": State,
+        "selectedCountry": Country,
+        "selectedLocation": Location
+    }
+    '''
     def get_context_data(self, **kwargs):
         super().get_context_data(**kwargs)
         context = {}
@@ -41,8 +71,10 @@ class DashboardView(TemplateView):
         try:
             userParam = self.request.user.username
             cityParam = self.request.GET.get('city', None)
-            print("CONTEXT: getting user and city: ", userParam, cityParam)
-            if cityParam == None:
+            stateParam = self.request.GET.get('state', None)
+            countryParam = self.request.GET.get('country', None)
+            print("CONTEXT: getting user, city, state, country: ", userParam, cityParam, stateParam, countryParam)
+            if not cityParam and not stateParam and not countryParam:
                 user = User.objects.get(login=userParam)
                 print("CONTEXT: getting user db: ", user)
                 stations = Station.objects.filter(user=user)
@@ -50,13 +82,18 @@ class DashboardView(TemplateView):
                 station = stations[0] if len(stations) > 0 else None
                 print("CONTEXT: getting first station: ", station)
                 if station != None:
-                    cityParam = station.city.name
+                    cityParam = station.location.city.name
+                    stateParam = station.location.state.name
+                    countryParam = station.location.country.name
                 else:
                     return context
             print("CONTEXT: getting last week data and measurements")
-            context["data"], context["measurements"] = self.get_last_week_data(userParam, cityParam)
-            print("CONTEXT: got last week data, now getting city: ", cityParam)
+            context["data"], context["measurements"] = self.get_last_week_data(userParam, cityParam, stateParam, countryParam)
+            print("CONTEXT: got last week data, now getting city, state, country: ", cityParam, stateParam, countryParam)
             context["selectedCity"] = City.objects.get(name=cityParam)
+            context["selectedState"] = State.objects.get(name=stateParam)
+            context["selectedCountry"] = Country.objects.get(name=countryParam)
+            context["selectedLocation"] = Location.objects.get(city=context["selectedCity"], state=context["selectedState"], country=context["selectedCountry"])
         except Exception as e:
             print("Error get_context_data. User: " + userParam, e)
         return context
@@ -65,18 +102,11 @@ class DashboardView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def get_measurements(sself, user, city):
-        userO = User.objects.get(login=user)
-        cityO = City.objects.get(name=city)
-        if userO == None or cityO == None:
-            raise 'No existe el usuario o ciudad indicada'
-        stationO = Station.objects.get(user=userO, city=cityO)
-        if stationO == None:
-            raise 'No hay datos para esa ubicación'
-        measurementsO = Measurement.objects.all()
-        return measurementsO
+    def get_measurements(self):
+        measurements = Measurement.objects.all()
+        return measurements
 
-    def get_last_week_data(self, user, city):
+    def get_last_week_data(self, user, city, state, country):
         result = {}
         start = datetime.now()
         start = start - \
@@ -84,35 +114,29 @@ class DashboardView(TemplateView):
                 days=1)
         try:
             userO = User.objects.get(login=user)
-            cityO = City.objects.get(name=city)
-            print("LAST_WEEK: Got user and city:", user, city)
-            if userO == None or cityO == None:
-                raise 'No existe el usuario o ciudad indicada'
-            stationO = Station.objects.get(user=userO, city=cityO)
-            print("LAST_WEEK: Got station:", user, city, stationO)
+            location = None
+            try:
+                cityO = City.objects.get(name=city)
+                stateO  = State.objects.get(name=state)
+                countryO = Country.objects.get(name=country)
+                location = Location.objects.get(city=cityO, state=stateO, country=countryO)
+            except:
+                print("Specified location does not exist")
+            print("LAST_WEEK: Got user and lcoation:", user, city, state, country)
+            if userO == None or location == None:
+                raise 'No existe el usuario o ubicación indicada'
+            stationO = Station.objects.get(user=userO, location=location)
+            print("LAST_WEEK: Got station:", user, location, stationO)
             if stationO == None:
                 raise 'No hay datos para esa ubicación'
-            print("LAST_WEEK: Filtering measures of ", stationO)
-            datas = Data.objects.filter(station=stationO, created_at__gte=start).order_by('-created_at')[:100]
-            print("LAST_WEEK: Filtered data: len ", len(datas))
-            cnt = 0
-            while len(datas) <= 0 and cnt < 3:
-                start = start - \
-                    dateutil.relativedelta.relativedelta(weeks=1)
-                datas = Data.objects.filter(station=stationO, created_at__gte=start).order_by('-created_at')[:100]
-                cnt += 1
-            if len(datas) <= 0:
-                start = datetime.fromtimestamp(0)
-                datas = Data.objects.filter(station=stationO).order_by('-created_at')[:100]
-            print("LAST_WEEK: Filtered data: len ", len(datas))
-            measurementsO = set([data.measurement for data in datas])
+            measurementsO = self.get_measurements()
             print("LAST_WEEK: Measurements got: ", measurementsO)
             for measure in measurementsO:
                 print("LAST_WEEK: Filtering measure: ", measure)
-                # created_at__gte=start.date() Filtro para último día
-                raw_data = Data.objects.filter(station=stationO, created_at__gte=start, measurement=measure).order_by('-created_at')[:50]
+                # time__gte=start.date() Filtro para último día
+                raw_data = Data.objects.filter(station=stationO, time__gte=start, measurement=measure).order_by('-time')[:50]
                 print("LAST_WEEK: Raw data: ", len(raw_data))
-                data = [[(d.toDict()['created_at'].timestamp() *
+                data = [[(d.toDict()['time'].timestamp() *
                           1000) // 1, d.toDict()['value']] for d in raw_data]
 
                 minVal = raw_data.aggregate(
@@ -132,6 +156,9 @@ class DashboardView(TemplateView):
 
         return result, measurementsO
 
+    '''
+    Post en /index. Se usa para actualizar las gráficas de medidas en tiempo real del usuario.
+    '''
     def post(self, request, *args, **kwargs):
         data = {}
         if request.user == None or not request.user.is_authenticated:
@@ -143,7 +170,9 @@ class DashboardView(TemplateView):
             userParam = self.request.user.username
             if action == 'get_data':
                 cityName = body['city']
-                data['result'] = self.get_last_week_data(userParam, cityName)
+                stateName = body['state']
+                countryName = body['country']
+                data['result'] = self.get_last_week_data(userParam, cityName, stateName, countryName)
             else:
                 data['error'] = 'Ha ocurrido un error'
         except Exception as e:
@@ -151,6 +180,9 @@ class DashboardView(TemplateView):
         return JsonResponse(data)
 
 
+'''
+Intenta traer el rol con nombre {name}. Si no existe lo crea y lo retorna.
+'''
 def get_or_create_role(name):
     try:
         role = Role.objects.get(name=name)
@@ -159,7 +191,9 @@ def get_or_create_role(name):
         role.save()
     return(role)
 
-
+'''
+Intenta traer el usuario con login {login}. Si no existe lo crea y lo retorna.
+'''
 def get_or_create_user(login):
     try:
         user = User.objects.get(login=login)
@@ -169,44 +203,89 @@ def get_or_create_user(login):
         user.save()
     return(user)
 
-
-def get_or_create_city(name):
-    city, created = City.objects.get_or_create(name=name)
-    if city.lat == None:
-        lat, lon = utils.getCityCoordinates(name)
-        city.lat = lat
-        city.lon = lon
-        city.save()
+'''
+Intenta traer la locación con nombre de ciudad, estado y país {city, state, country}.
+Si no existe, calcula las coordenadas de esa ubicación, lo crea y lo retorna.
+'''
+def get_or_create_location(city, state, country):
+    cityO, created = City.objects.get_or_create(name=city)
+    stateO, created = State.objects.get_or_create(name=state)
+    countryO, created = Country.objects.get_or_create(name=country)
+    loc, created = Location.objects.get_or_create(city=cityO, state=stateO, country= countryO)
+    if loc.lat == None:
+        lat, lng = getCityCoordinates(f'{city}, {state}, {country}') # TODO Geolocate including state and country #, {state}, {country}')
+        loc.lat = lat
+        loc.lng = lng
+        loc.save()
         
-    return(city)
+    return(loc)
+'''
+Intenta traer la locación con sólo nombre de ciudad {city}.
+Si no existe, calcula las coordenadas de esa ubicación, lo crea y lo retorna.
+'''
+def get_or_create_location_only_city(city):
+    cityO, created = City.objects.get_or_create(name=city)
+    stateO, created = State.objects.get_or_create(name="")
+    countryO, created = Country.objects.get_or_create(name="Colombia")
+    loc, created = Location.objects.get_or_create(city=cityO, state=stateO, country= countryO)
+    if loc.lat == None:
+        lat, lng = getCityCoordinates(f'{city}, Colombia') # TODO Geolocate including state and country #, {state}, {country}')
+        loc.lat = lat
+        loc.lng = lng
+        loc.save()
+        
+    return(loc)
 
-
-def get_or_create_station(user, city, measurement):
-    station, created = Station.objects.get_or_create(user=user, city=city, measurement=measurement)
+'''
+Intenta traer la estación con usuario y locación {user, location}. Si no existe la crea y la retorna.
+'''
+def get_or_create_station(user, location):
+    station, created = Station.objects.get_or_create(user=user, location=location)
     return(station)
 
-
-def get_station(user, city):
-    station = Station.objects.get(user=user, city=city)
+'''
+Traer la estación con usuario y locación {user, location}.
+'''
+def get_station(user, location):
+    station = Station.objects.get(user=user, location=location)
     return(station)
 
-
+'''
+Intenta traer la variable con nombre y unidad {name, unit}. Si no existe la crea y la retorna.
+'''
 def get_or_create_measurement(name, unit):
     measurement, created = Measurement.objects.get_or_create(name=name, unit=unit)
     return(measurement)
 
 
-def create_data(value, station):
-    data = Data(value=value, station=station)
+'''
+Crea una nueva medición con valor, estación y variable {value, station, measure}
+Actualiza también el tiempo de última actividad de la estación.
+'''
+def create_data(value: float, station: Station, measure: Measurement):
+    data = Data(value=value, station=station, measurement=measure)
+    data.save()
+    station.last_activity = data.time
+    station.save()
+    return(data)
+
+'''
+Crea una nueva medición con valor, estación y variable {value, station, measure}
+Adicional a la función anterior, esta crea la medición con una fecha específica.
+Se usa para la importación de datos.
+'''
+def create_data_with_date(value: float, station: Station, measure: Measurement, date: datetime):
+    data = Data(value=value, station=station, measurement=measure, time=date)
     data.save()
     return(data)
 
 
+'''
+Trae la última medición de una estación y variable en específico {station, measurement}.
+'''
 def get_last_measure(station, measurement):
     last_measure = Data.objects.filter(
-        station=station, measurement=measurement).latest('created_at')
-    print(last_measure.created_at)
-    print(datetime.now())
+        station=station, measurement=measurement).latest('time')
     return(last_measure.value)
 
 
@@ -220,7 +299,6 @@ class LoginView(TemplateView):
             try:
                 user = form.login(request)
                 if user:
-                    # print('User logged: ', user['email'])
                     login(request, user)
                     return HttpResponseRedirect("/")
             except Exception as e:
@@ -241,98 +319,55 @@ class LogoutView(TemplateView):
 class HistoricalView(TemplateView):
     template_name = 'historical.html'
 
+    '''
+    Get de /historical. Si el usuario no está logueado se redirige a la página de login.
+    Envía la página de template de historical.
+    El archivo se descarga directamente del csv actualizado. No hay procesamiento ni filtros.
+    '''
     def get(self, request, **kwargs):
         if request.user == None or not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
         return render(request, self.template_name)
 
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-
-        userParam = self.request.user.username
-        cityParam = self.kwargs['city'] if 'city' in self.kwargs else None
-
-        # Add in a QuerySet of all the users
-        # context['cities'] = City.objects.all()
-        # context['measurements'] = Measurement.objects.all()
-        context['selectedUser'] = User.objects.get(login=userParam)
-        if context['selectedUser'] != None:
-            stations = Station.objects.filter(
-                user=context['selectedUser'])
-            context['cities'] = [station.city for station in stations]
-            if len(context['cities']) > 0 and cityParam == None:
-                cityParam = context['cities'][0].name
-            if cityParam != None:
-                context['selectedCity'] = City.objects.get(name=cityParam)
-                if context['selectedCity'] != None:
-                    print('found city')
-                    datas = Data.objects.filter(station__in=stations)
-                    station = Station.objects.get(
-                        user=context['selectedUser'],
-                        city=context['selectedCity']
-                    )
-                    context['measurements'] = set([
-                        data.measurement for data in datas])
-                    try:
-                        start = datetime.fromtimestamp(
-                            float(self.request.GET.get('from', None))/1000)
-                    except:
-                        start = None
-                    try:
-                        end = datetime.fromtimestamp(
-                            float(self.request.GET.get('to', None))/1000)
-                    except:
-                        end = None
-                    if start == None and end == None:
-                        start = datetime.now()
-                        start = start - \
-                            dateutil.relativedelta.relativedelta(
-                                weeks=1)
-                        end = datetime.now()
-                        end += dateutil.relativedelta.relativedelta(days=1)
-                    elif end == None:
-                        end = datetime.now()
-                    elif start == None:
-                        start = datetime.fromtimestamp(0)
-
-                    context['data'] = {}
-
-                    context['start'] = start.strftime(
-                        "%d/%m/%Y") if start != None else " "
-                    context['end'] = end.strftime(
-                        "%d/%m/%Y") if end != None else " "
-
-                    for measure in context['measurements']:
-                        data = Data.objects.filter(
-                            station=station, measurement=measure, created_at__gte=start.date(), created_at__lte=end.date())
-                        contextData = [[(d.toDict()['created_at'].timestamp() * 1000) // 1, d.toDict()[
-                            'value']] for d in data]
-                        minVal = data.aggregate(
-                            Min('value'))['value__min']
-                        maxVal = data.aggregate(
-                            Max('value'))['value__max']
-                        avgVal = data.aggregate(
-                            Avg('value'))['value__avg']
-                        context['data'][measure.name] = {
-                            'min': minVal if minVal != None else 0,
-                            'max': maxVal if maxVal != None else 0,
-                            'avg': round(avgVal if avgVal != None else 0, 2),
-                            'data': contextData
-                        }
-                    context['data'] = json.dumps(context['data'])
-        return context
-
 class RemaView(TemplateView):
     template_name = 'rema.html'
 
+    '''
+    Get de /rema. Si el usuario no está logueado se redirige a la página de login.
+    Envía la página de template de historical.
+    El archivo se descarga directamente del csv actualizado. No hay procesamiento ni filtros.
+    '''
     def get(self, request, **kwargs):
         if request.user == None or not request.user.is_authenticated:
             return HttpResponseRedirect("/login/")
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
+    '''
+    Se procesan los datos para cargar el contexto del template.
+    El template espera un contexto de este tipo:
+    {
+        "data": [
+            {
+                "name": "ciudad, estado, país",
+                "lat": float,
+                "lng": float,
+                "population": int,
+                "min": float,
+                "max": float,
+                "avg": float
+            },
+            {name, lat, lng, pop, min, max, avg},
+            {name, lat, lng, pop, min, max, avg},
+            ...
+        ],
+        "measurements": [Measurement0, Measurement1, ...],
+        "selectedMeasure": Measurement,
+        "locations": [Location0, Location1, ...],
+        "start": startTime,
+        "end": endTime
+    }
+    '''
     def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
         measureParam = self.kwargs.get('measure', None)
@@ -344,7 +379,7 @@ class RemaView(TemplateView):
         elif measurements.count() > 0:
             selectedMeasure = measurements[0]
 
-        cities = City.objects.all()
+        locations = Location.objects.all()
         try:
             start = datetime.fromtimestamp(
                 float(self.request.GET.get('from', None))/1000)
@@ -369,21 +404,21 @@ class RemaView(TemplateView):
 
         data = []
 
-        for city in cities:
-            stations = Station.objects.filter(city=city)
-            cityData = Data.objects.filter(station__in=stations, measurement__name=selectedMeasure.name,  created_at__gte=start.date(), created_at__lte=end.date())
-            if cityData.count() <= 0:
+        for location in locations:
+            stations = Station.objects.filter(location=location)
+            locationData = Data.objects.filter(station__in=stations, measurement__name=selectedMeasure.name,  time__gte=start.date(), time__lte=end.date())
+            if locationData.count() <= 0:
                 continue
-            minVal = cityData.aggregate(
+            minVal = locationData.aggregate(
                     Min('value'))['value__min']
-            maxVal = cityData.aggregate(
+            maxVal = locationData.aggregate(
                     Max('value'))['value__max']
-            avgVal = cityData.aggregate(
+            avgVal = locationData.aggregate(
                     Avg('value'))['value__avg']
             data.append({
-                'name': city.name,
-                'lat': city.lat,
-                'lon': city.lon,
+                'name': f'{location.city.name}, {location.state.name}, {location.country.name}',
+                'lat': location.lat,
+                'lng': location.lng,
                 'population': stations.count(),
                 'min': minVal if minVal != None else 0,
                 'max': maxVal if maxVal != None else 0,
@@ -395,7 +430,7 @@ class RemaView(TemplateView):
 
         context['measurements'] = measurements
         context['selectedMeasure'] = selectedMeasure
-        context['cities'] = cities
+        context['locations'] = locations
         context['start'] = startFormatted
         context['end'] = endFormatted
         context['data'] = data
@@ -410,7 +445,7 @@ def download_csv_data(request):
     start, end = get_daterange(request)
     print("Start, end", start, end)
     data = Data.objects.filter(
-        created_at__gte=start.date(), created_at__lte=end.date())
+        time__gte=start.date(), time__lte=end.date())
     print("Data ref got")
     tmpFile = tempfile.NamedTemporaryFile(delete=False)
     print("Creating file")
@@ -418,7 +453,7 @@ def download_csv_data(request):
 
     with open(filename, 'w', encoding='utf-8') as data_file:
         print("Filename:", filename)
-        headers = ['Usuario', 'Ciudad', 'Fecha', 'Variable', 'Medición']
+        headers = ['Usuario', 'Ciudad', 'Estado', 'País', 'Fecha', 'Variable', 'Medición']
         data_file.write(','.join(headers) + '\n')
         print("Head written")
         print("Len of data:", len(data))
@@ -426,29 +461,6 @@ def download_csv_data(request):
             data_file.write(str(data))
         except Exception as e:
             print(e)
-        # for measure in data:
-        #     usuario, ciudad, fecha, variable, medicion = 'NA', 'NA', 'NA', 'NA', 'NA'
-        #     try:
-        #         usuario = measure.station.user.login
-        #     except:
-        #         pass
-        #     try:
-        #         ciudad = measure.station.city.name
-        #     except:
-        #         pass
-        #     try:
-        #         fecha = measure.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        #     except:
-        #         pass
-        #     try:
-        #         variable = measure.measurement.name
-        #     except:
-        #         pass
-        #     medicion = measure.value
-        #     print("Writing: ", usuario, ciudad, fecha, variable, str(medicion))
-
-        #     data_file.write(
-        #         ','.join([usuario, ciudad, fecha, variable, str(medicion)]) + '\n')
     endT = time.time()
     print("##### VIEW ######")
     print("Processed. Time: ", endT - startT)
@@ -456,6 +468,10 @@ def download_csv_data(request):
     return FileResponse(open(filename, 'rb'), filename='datos-historicos-iot.csv')
 
 
+'''
+Extrae los rangos de fecha de la url.
+Ej: /index?from=1600000&to=1600000 => start=datetime.fromtimestamp(1600000), end=datetime.fromtimestamp(1600000)
+'''
 def get_daterange(request):
     try:
         start = datetime.fromtimestamp(
@@ -481,7 +497,9 @@ def get_daterange(request):
 
     return start, end
 
-
+'''
+Filtro para formatear datos en el template de index
+'''
 @ register.filter
 def get_statistic(dictionary, key):
     if type(dictionary) == str:
@@ -491,7 +509,9 @@ def get_statistic(dictionary, key):
     keys = [k.strip() for k in key.split(',')]
     return dictionary.get(keys[0]).get(keys[1])
 
-
+'''
+Filtro para formatear datos en los templates
+'''
 @ register.filter
 def add_str(str1, str2):
     return str1 + str2

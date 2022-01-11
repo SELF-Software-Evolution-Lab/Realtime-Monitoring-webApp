@@ -6,6 +6,7 @@
 <script src="/static/lib/highmaps/modules/exporting.js"></script>
 <script src="/static/lib/highmaps/modules/offline-exporting.js"></script>
 <script src="/static/lib/highmaps/maps/co-all.js"></script>
+<script src="/static/lib/highmaps/maps/world.js"></script>
 {% endblock %} {% block content %}
 <br />
 <div class="container-fluid">
@@ -160,15 +161,16 @@
         var H = Highcharts.mapChart('container-map', {
 
 chart: {
-    map: 'countries/co/co-all',
+    map: 'custom/world',
     events: {
       load: function () {
         var serie = this.series[0];
-        var ciudades = this.series[1];
+        var ubicaciones = this.series[1];
+        console.log("DATA:", data);
         data.forEach(function (d) {
           d.z = parseFloat(d.population);
           d.lat = parseFloat(d.lat);
-          d.lon = parseFloat(d.lon);
+          d.lon = parseFloat(d.lng);
           if (minStat == maxStat) {
             minStat = parseFloat(d.min);
             maxStat = parseFloat(d.max);
@@ -177,7 +179,7 @@ chart: {
           var color = serie.chart.colorAxis[0].toColor(d.avg);
           d.color = color;
           d.value = d.avg;
-          ciudades.addPoint(d);
+          ubicaciones.addPoint(d);
           serie.addPoint(d);
         });
         this.isDirtyLegend = true;
@@ -205,7 +207,7 @@ mapNavigation: {
 
 tooltip: {
     headerFormat: '<strong>{point.key}</strong><br/>',
-    pointFormat: 'Lat: {point.lat}, Lon: {point.lon}<br/> Mín: {point.min}<br/> Máx: {point.max}<br/> Avg: {point.avg}<br/>  Estaciones: {point.population}'
+    pointFormat: 'Lat: {point.lat}, Lon: {point.lng}<br/> Mín: {point.min}<br/> Máx: {point.max}<br/> Avg: {point.avg}<br/>  Estaciones: {point.population}'
 },
 
 colorAxis: {
