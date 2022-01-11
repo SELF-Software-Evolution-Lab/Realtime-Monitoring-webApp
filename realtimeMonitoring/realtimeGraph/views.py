@@ -219,6 +219,7 @@ def get_or_create_location(city, state, country):
         loc.save()
         
     return(loc)
+    
 '''
 Intenta traer la locación con sólo nombre de ciudad {city}.
 Si no existe, calcula las coordenadas de esa ubicación, lo crea y lo retorna.
