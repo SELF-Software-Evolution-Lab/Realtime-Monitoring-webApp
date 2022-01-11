@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+asgiref = "==3.3.4"
+Django = "==3.2.4"
+html5lib = "==1.1"
+paho-mqtt = "==1.5.1"
+pytz = "==2021.1"
+six = "==1.16.0"
+sqlparse = "==0.4.1"
+webencodings = "==0.5.1"
+django-crontab = "*"
+django = "*"
+gunicorn = "*"
+psycopg2 = "*"
+ldap3 = "*"
+django-cron = "*"
+requests = "*"
+python-dateutil = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"

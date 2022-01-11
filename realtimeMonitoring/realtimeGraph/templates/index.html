@@ -7,7 +7,7 @@
 {% endblock %} {% block content %}
 <br />
 <h1 class="h3 text-center">Datos en tiempo real</h1>
-{% if selectedCity %}
+{% if selectedCity and selectedState and selectedCountry %}
 <div class="container-fluid">
   <div class="row">
     <div class="col-lg-12">
@@ -223,11 +223,11 @@
               onchange="this.options[this.selectedIndex].value && (window.location = '/historical/' + this.options[this.selectedIndex].value);"
             >
               <option value="">Todas</option>
-              {% for city in cities %}
-              <option value="{{city.name}}"
-              {% if selectedCity.name == city.name %}
+              {% for location in locations %}
+              <option value="{{location.country.name}}/{{location.state.name}}/{{location.city.name}}"
+              {% if selectedLocation.lat == location.lat and selectedLocation.lng == location.lng %}
                 selected
-                {% endif %}>{{city.name}}</option>
+                {% endif %}>{{location.city.name}}, {{location.state.name}}, {{location.country.name}}</option>
               {% endfor %}
             </select>
           </div>
@@ -349,6 +349,8 @@
     setInterval(async () => {
       var newData = {
         city: "{{selectedCity.name}}",
+        state: "{{selectedState.name}}",
+        country: "{{selectedCountry.name}}",
         action: "get_data"
       }
       var url = '/';
