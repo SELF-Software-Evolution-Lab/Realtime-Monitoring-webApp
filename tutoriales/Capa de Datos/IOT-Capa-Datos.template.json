@@ -1,0 +1,600 @@
+{
+  "Resources": {
+    "VPCB9E5F0B4": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/VPC"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/Resource"
+      }
+    },
+    "VPCpublicSubnet1Subnet325F50B2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/17",
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "public"
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public"
+          },
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/VPC/publicSubnet1"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet1/Subnet"
+      }
+    },
+    "VPCpublicSubnet1RouteTableF591E248": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/VPC/publicSubnet1"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet1/RouteTable"
+      }
+    },
+    "VPCpublicSubnet1RouteTableAssociationBFFA43B7": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet1RouteTableF591E248"
+        },
+        "SubnetId": {
+          "Ref": "VPCpublicSubnet1Subnet325F50B2"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet1/RouteTableAssociation"
+      }
+    },
+    "VPCpublicSubnet1DefaultRoute19059ECD": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet1RouteTableF591E248"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VPCIGWB7E252D3"
+        }
+      },
+      "DependsOn": ["VPCVPCGW99B986DC"],
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet1/DefaultRoute"
+      }
+    },
+    "VPCpublicSubnet2Subnet2B2DFF71": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.0.128.0/17",
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "public"
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public"
+          },
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/VPC/publicSubnet2"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet2/Subnet"
+      }
+    },
+    "VPCpublicSubnet2RouteTable55DAB1BB": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/VPC/publicSubnet2"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet2/RouteTable"
+      }
+    },
+    "VPCpublicSubnet2RouteTableAssociation0849466B": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet2RouteTable55DAB1BB"
+        },
+        "SubnetId": {
+          "Ref": "VPCpublicSubnet2Subnet2B2DFF71"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet2/RouteTableAssociation"
+      }
+    },
+    "VPCpublicSubnet2DefaultRoute9ED4D6BC": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet2RouteTable55DAB1BB"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VPCIGWB7E252D3"
+        }
+      },
+      "DependsOn": ["VPCVPCGW99B986DC"],
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/publicSubnet2/DefaultRoute"
+      }
+    },
+    "VPCIGWB7E252D3": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/VPC"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/IGW"
+      }
+    },
+    "VPCVPCGW99B986DC": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "InternetGatewayId": {
+          "Ref": "VPCIGWB7E252D3"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/VPC/VPCGW"
+      }
+    },
+    "timescaledbsg628CD439": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "IOT-Capa-Datos/timescaledb-sg",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "allow access to timescaledb",
+            "FromPort": 0,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "allow access to timescaledb",
+            "FromPort": 0,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/timescaledb-sg/Resource"
+      }
+    },
+    "postgressg6AB3C2C5": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "IOT-Capa-Datos/postgres-sg",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "allow access to postgresdb",
+            "FromPort": 0,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "allow access to postgresdb",
+            "FromPort": 0,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/postgres-sg/Resource"
+      }
+    },
+    "TimescaleInstanceInstanceProfileC2537C26": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": ["LabRole"]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/TimescaleInstance/InstanceProfile"
+      }
+    },
+    "TimescaleInstanceAE458C08": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "IamInstanceProfile": {
+          "Ref": "TimescaleInstanceInstanceProfileC2537C26"
+        },
+        "ImageId": {
+          "Fn::FindInMap": [
+            "TimescaleInstanceAmiMapF4FD7A9B",
+            {
+              "Ref": "AWS::Region"
+            },
+            "ami"
+          ]
+        },
+        "InstanceType": "t2.micro",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": ["timescaledbsg628CD439", "GroupId"]
+          }
+        ],
+        "SubnetId": {
+          "Ref": "VPCpublicSubnet1Subnet325F50B2"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/TimescaleInstance"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg postgresql-common apt-transport-https lsb-release wget\nyes | sudo apt install libpq-dev python3-dev\nyes | sudo apt install unzip\nyes | sudo apt install pipenv\nyes '' | sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh\nsudo sh -c \"echo 'deb https://packagecloud.io/timescale/timescaledb/ubuntu/ $(lsb_release -c -s) main' > /etc/apt/sources.list.d/timescaledb.list\"\nsudo wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | sudo apt-key add -\nsudo apt update\nsudo apt install -y timescaledb-2-postgresql-14\nsudo timescaledb-tune --quiet --yes\necho \"host  all  all    0.0.0.0/0  md5\" | sudo tee -a /etc/postgresql/14/main/pg_hba.conf\necho \"host  all  all    ::/0  md5\" | sudo tee -a /etc/postgresql/14/main/pg_hba.conf\necho \"listen_addresses = '*'\" | sudo tee -a /etc/postgresql/14/main/postgresql.conf\necho \"max_connections = 100\" | sudo tee -a /etc/postgresql/14/main/postgresql.conf\nsudo systemctl restart postgresql\nsudo su - postgres -c                  \"psql -c \\\"CREATE ROLE dbadmin WITH LOGIN SUPERUSER PASSWORD 'uniandesIOT2022';\\\";                     psql -c \\\"ALTER ROLE dbadmin SET timezone TO 'UTC';\\\";                     psql -c \\\"CREATE database iot_data;\\\";                     psql -d iot_data -c \\\"CREATE EXTENSION IF NOT EXISTS timescaledb;\\\"\""
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/TimescaleInstance/Resource"
+      }
+    },
+    "PostgresInstanceInstanceProfileB81C66FB": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": ["LabRole"]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/PostgresInstance/InstanceProfile"
+      }
+    },
+    "PostgresInstance19CDD68A": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "IamInstanceProfile": {
+          "Ref": "PostgresInstanceInstanceProfileB81C66FB"
+        },
+        "ImageId": {
+          "Fn::FindInMap": [
+            "PostgresInstanceAmiMap67E48A82",
+            {
+              "Ref": "AWS::Region"
+            },
+            "ami"
+          ]
+        },
+        "InstanceType": "t2.micro",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": ["postgressg6AB3C2C5", "GroupId"]
+          }
+        ],
+        "SubnetId": {
+          "Ref": "VPCpublicSubnet1Subnet325F50B2"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-Capa-Datos/PostgresInstance"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg postgresql-common apt-transport-https lsb-release wget\nyes | sudo apt install libpq-dev python3-dev\nyes | sudo apt install unzip\nyes | sudo apt install pipenv\nyes '' | sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh\nsudo sh -c \"echo 'deb https://packagecloud.io/timescale/timescaledb/ubuntu/ $(lsb_release -c -s) main' > /etc/apt/sources.list.d/timescaledb.list\"\nsudo wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | sudo apt-key add -\nsudo apt update\nsudo apt install -y timescaledb-2-postgresql-14\nsudo timescaledb-tune --quiet --yes\necho \"host  all  all    0.0.0.0/0  md5\" | sudo tee -a /etc/postgresql/14/main/pg_hba.conf\necho \"host  all  all    ::/0  md5\" | sudo tee -a /etc/postgresql/14/main/pg_hba.conf\necho \"listen_addresses = '*'\" | sudo tee -a /etc/postgresql/14/main/postgresql.conf\nsudo systemctl restart postgresql\nsudo su - postgres -c                  \"psql -c \\\"CREATE ROLE dbadmin WITH LOGIN SUPERUSER PASSWORD 'uniandesIOT2022';\\\";                     psql -c \\\"ALTER ROLE dbadmin SET timezone TO 'UTC';\\\";                     psql -c \\\"CREATE database iot_data;\\\";\""
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/PostgresInstance/Resource"
+      }
+    },
+    "CDKMetadata": {
+      "Type": "AWS::CDK::Metadata",
+      "Properties": {
+        "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WQPW/CQAyGfwv75UrpxIgyIIZKUYJYK+cwxSWxozufUBTlv5OQ0LSTXz/+euWNfV/b9QruIXHnW1JRabtCwd3MgL46dBvbnRpn0gufstRksazIFbFk1JEtKpeoeISywoUvbBeCOAIl4d/mURxY0Q+de1C8QzufmbOdDkauNbKaAl30pO3eS2yeB/6BAwcFdvPKSfeGoLZdLpOjV3yVMy8XqrDvTY5Bop+GP6FpiL+fA39wKnym0Xxvslavwm8fdjt8bvUTiBIfWalGm0/xAfpDNohTAQAA"
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-Capa-Datos/CDKMetadata/Default"
+      },
+      "Condition": "CDKMetadataAvailable"
+    }
+  },
+  "Mappings": {
+    "TimescaleInstanceAmiMapF4FD7A9B": {
+      "us-east-1": {
+        "ami": "ami-04505e74c0741db8d"
+      }
+    },
+    "PostgresInstanceAmiMap67E48A82": {
+      "us-east-1": {
+        "ami": "ami-04505e74c0741db8d"
+      }
+    }
+  },
+  "Conditions": {
+    "CDKMetadataAvailable": {
+      "Fn::Or": [
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "af-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ca-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-northwest-1"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-3"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "me-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "sa-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-2"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-2"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
