@@ -24,10 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-mygg^ha8a4k3y1qz5!=(!iw%vnw3=b5amqz4-m=n-m4n_q_g^3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['172.24.98.209', 'localhost', '157.253.238.90',
-                 'iotlabweb.virtual.uniandes.edu.co']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -84,9 +83,9 @@ WSGI_APPLICATION = 'realtimeMonitoring.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'iottimescale',
-        'USER': 'iotmonitoring',
-        'PASSWORD': 'monitoriaIOT2021*',
+        'NAME': 'iot_data',
+        'USER': 'dbadmin',
+        'PASSWORD': 'uniandesIOT2022',
         'HOST': 'localhost',
         'PORT': '',
     }
@@ -130,14 +129,14 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
+# STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'static', 'media')
 #MEDIA_URL = '/static/media/'
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
-    os.path.join(PROJECT_ROOT, 'static'),
+    os.path.join(PROJECT_ROOT, 'static/'),
 )
 
 # Default primary key field type

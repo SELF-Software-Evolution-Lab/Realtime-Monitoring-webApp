@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-asgiref = "==3.3.4"
+asgiref = "*"
 Django = "==3.2.4"
 html5lib = "==1.1"
 paho-mqtt = "==1.5.1"
@@ -15,7 +15,7 @@ webencodings = "==0.5.1"
 django-crontab = "*"
 django = "*"
 gunicorn = "*"
-psycopg2 = "*"
+psycopg2-binary = "*"
 ldap3 = "*"
 django-cron = "*"
 requests = "*"
