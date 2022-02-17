@@ -1,6 +1,5 @@
-
 from django.utils.timezone import activate
-from realtimeGraph.models import Measurement, Role, Station, User, Data
+from realtimeGraph.models import Measurement, Role, Station, User, Data, State, City, Country, Location
 from django.contrib.auth.models import User as AuthUser
 from ldap3 import Server, Connection, ALL, SUBTREE, Tls, NTLM
 from django_cron import CronJobBase, Schedule
@@ -11,6 +10,7 @@ import random
 import time
 import os
 import requests
+
 from . import settings
 
 '''
@@ -18,6 +18,8 @@ Registra los usuarios que están en users.pwd (en la carpeta raíz del proyecto)
 Por cada usuario, el sistema crea el objeto User, luego crea un usuario en el sistema de 
 autenticación de Django con usuario login y la contraseña MQTT descrita en el archivo users.pwd.
 '''
+
+
 def register_users():
     registered_count = 0
     registering_count = 0
@@ -32,7 +34,8 @@ def register_users():
             login = login.strip()
             passwd = passwd.strip()
             try:
-                role, created = Role.objects.get_or_create(name="USER", active=True)
+                role, created = Role.objects.get_or_create(
+                    name="USER", active=True)
                 userDB, userCreated = User.objects.get_or_create(login=login, defaults={
                     'email': login + '@uniandes.edu.co',
                     'password': passwd,
@@ -55,11 +58,14 @@ def register_users():
                          {registered_count+ registering_count}'
         )
 
+
 '''
 Presta el servicio de login al sistema ldap de la universidad.
 Esta función sólo confirma que el usuario y la contraseña son correctos o no.
 Sólo funciona si el códido es ejecutado dentro de la red de la universidad.
 '''
+
+
 def ldap_login(username, password):
     msg = ""
     try:
@@ -84,9 +90,12 @@ def ldap_login(username, password):
         msg = str(e) + " Exception"
     return False, msg
 
+
 '''
 Servicio para conseguir las coordenadas de un lugar (nombre) usando PositionStack.
 '''
+
+
 def getCityCoordinates(nameParam: str):
     lat = None
     lng = None
@@ -100,12 +109,15 @@ def getCityCoordinates(nameParam: str):
             lng = data[0]['longitude']
     return lat, lng
 
+
 '''
 Crea y escribe el archivo CSV para descarga.
 Se escribe en el archivo todos los registros que están en la base de datos actualmente.
 Para una gran cantidad de registros toma mucho tiempo.
 Ejecutar sólo la primera vez, luego usar updateCSV.
 '''
+
+
 def writeDataCSVFile():
     print("Getting time for csv req")
     startT = time.time()
@@ -117,7 +129,8 @@ def writeDataCSVFile():
 
     with open(filepath, 'w', encoding='utf-8') as data_file:
         print("Filename:", filepath)
-        headers = ['Usuario', 'Ciudad', 'Estado', 'País', 'Fecha', 'Variable', 'Medición']
+        headers = ['Usuario', 'Ciudad', 'Estado',
+                   'País', 'Fecha', 'Variable', 'Medición']
         data_file.write(','.join(headers) + '\n')
         print("CSV: Head written")
         print("CSV: Len of data:", len(data))
@@ -149,10 +162,13 @@ def writeDataCSVFile():
     endT = time.time()
     print("Processed CSV file. Time: ", endT - startT)
 
+
 '''
 Actualiza el archivo CSV para descargar.
 Lee el último registro y escribe los registros faltantes a la fecha.
 '''
+
+
 def updateCSVFile():
     filepath = settings.BASE_DIR / \
         "realtimeMonitoring/static/data/datos-historicos-iot.csv"
@@ -192,10 +208,13 @@ def updateCSVFile():
                               variable, str(medicion)]) + '\n'
         data_file.write(lines)
 
+
 '''
 Crea una medición en la base de datos.
 Se usa para la importación de los datos desde CSV.
 '''
+
+
 def saveMeasure(user: str, city: str, date: datetime, variable: str, measure: float):
     from realtimeGraph.views import create_data_with_date, get_or_create_location, get_or_create_location_only_city, get_or_create_measurement, get_or_create_user, get_or_create_station, create_data
     try:
@@ -208,9 +227,12 @@ def saveMeasure(user: str, city: str, date: datetime, variable: str, measure: fl
     except Exception as e:
         print("ERROR saving measure: ", e)
 
+
 '''
 Función para importar los datos del archivo input.csv en la raíz del proyecto.
 '''
+
+
 def loadCSV():
     filepath = settings.BASE_DIR / \
         "input.csv"
@@ -219,11 +241,15 @@ def loadCSV():
         for line in lines[1:]:
             usuario, ciudad, fecha, variable, medicion = line.split(",")
             date = datetime.strptime(fecha, '%Y-%m-%d %H:%M:%S')
-            saveMeasure(user=usuario, city=ciudad, date=date, variable=variable, measure=float(medicion))
+            saveMeasure(user=usuario, city=ciudad, date=date,
+                        variable=variable, measure=float(medicion))
+
 
 '''
 Clase cron para actualizar el CSV cada cierto tiempo
 '''
+
+
 class UpdateCSVCron(CronJobBase):
     RUN_EVERY_MINS = 1
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
@@ -232,9 +258,12 @@ class UpdateCSVCron(CronJobBase):
     def do(self):
         updateCSVFile()
 
+
 '''
 Función auxiliar para obtener la última linea de un archivo.
 '''
+
+
 def getLastLine(file):
     try:  # catch OSError in case of a one line file
         file.seek(-2, os.SEEK_END)
@@ -245,13 +274,49 @@ def getLastLine(file):
     last_line = file.readline().decode()
     return last_line
 
+
 '''
 Función para generar datos ficticios para poblar el sistema.
 Se usa para hacer pruebas de carga.
 '''
+
+
 def generateMockData():
 
     print("Starting generation of mock data...")
+
+    if (Data.objects.count() > 1000000):
+        print("Mock data already generated.")
+        return
+
+    measure1, created = Measurement.objects.get_or_create(
+        name="Temperatura", unit="°C")
+    measure2, created = Measurement.objects.get_or_create(
+        name="Humedad", unit="%")
+
+    role, created = Role.objects.get_or_create(name="TEST")
+
+    user1, created = User.objects.get_or_create(login="userMock1", role=role)
+    user2, created = User.objects.get_or_create(login="userMock2", role=role)
+
+    city1, created = City.objects.get_or_create(name="Ciudad1")
+    city2, created = City.objects.get_or_create(name="Ciudad2")
+
+    state1, created = State.objects.get_or_create(name="Estado1")
+    state2, created = State.objects.get_or_create(name="Estado2")
+
+    country1, created = Country.objects.get_or_create(name="Pais1")
+    country2, created = Country.objects.get_or_create(name="Pais2")
+
+    location1, created = Location.objects.get_or_create(
+        city=city1, state=state1, country=country1, lat=4.7110, lng=74.0721)
+    location2, created = Location.objects.get_or_create(
+        city=city2, state=state2, country=country2, lat=19.4326, lng=99.1332)
+
+    station1, created = Station.objects.get_or_create(
+        user=user1, location=location1)
+    station2, created = Station.objects.get_or_create(
+        user=user2, location=location2)
 
     stations = []
     measures = []
@@ -278,9 +343,10 @@ def generateMockData():
         station = stations[rand_station]
         measure = measures[rand_measure]
         data = (random.random()*40)
-        Data.objects.create(station=station, measurement=measure, value=data, time=current_date)
+        Data.objects.create(station=station, measurement=measure,
+                            value=data, time=current_date)
         print("Data created:", count, current_date.timestamp())
         count += 1
         current_date += timedelta(milliseconds=interval)
-    
+
     print("Finished. Total data:", count, "Last date:", current_date)

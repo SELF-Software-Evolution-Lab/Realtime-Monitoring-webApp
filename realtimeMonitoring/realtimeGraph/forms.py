@@ -16,13 +16,14 @@ class LoginForm(forms.Form):
     Arroja excepciones si el usuario existe en la universidad pero no está registrado en el sistema de monitoreo o
     si existe algún otro error en el proceso
     '''
+
     def process_login(self):
         username = self.cleaned_data.get('username')
-        password = self.cleaned_data.get('password')    
+        password = self.cleaned_data.get('password')
         utils.ldap_login(username, password)
         # Username and password for testing
         if username == "pruebasIOT" and password == "pruebas2021!":
-            username = "ja.avelino"
+            username = "usertest1"
             logged_in = True
         user = None
         if logged_in:
