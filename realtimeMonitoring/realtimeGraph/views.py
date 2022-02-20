@@ -143,7 +143,7 @@ class DashboardView(TemplateView):
             userParam = self.request.user.username
             if action == 'get_data':
                 cityName = body['city']
-                data['result'] = self.get_last_week_data(userParam, cityName)
+                data['result'] = self.get_last_week_data(userParam, cityName)[0]
             else:
                 data['error'] = 'Ha ocurrido un error'
         except Exception as e:
