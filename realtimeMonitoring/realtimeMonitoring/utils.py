@@ -286,10 +286,11 @@ Se usa para hacer pruebas de carga.
 
 
 def generateMockData():
+    from realtimeGraph.views import create_data
 
     print("Starting generation of mock data...")
 
-    if (Data.objects.count() > 1000000):
+    if (Data.objects.count() > 1000):
         print("Mock data already generated.")
         return
 
@@ -341,14 +342,13 @@ def generateMockData():
 
     count = 0
 
-    while current_date < datetime.now():
+    while current_date < datetime.now() and count < 1200000:
         rand_station = random.randint(0, len(stations)-1)
         rand_measure = random.randint(0, len(measures)-1)
         station = stations[rand_station]
         measure = measures[rand_measure]
         data = (random.random()*40)
-        Data.objects.create(station=station, measurement=measure,
-                            value=data, time=current_date)
+        create_data(data, station, measure, current_date)
         print("Data created:", count, current_date.timestamp())
         count += 1
         current_date += timedelta(milliseconds=interval)

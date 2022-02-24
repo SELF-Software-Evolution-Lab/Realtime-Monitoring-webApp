@@ -5,6 +5,7 @@ from django.utils import timezone
 
 USER_ROLE_ID = 1
 
+
 class Role(models.Model):
     name = models.CharField(max_length=16, blank=False, unique=True)
     active = models.BooleanField(default=True)
@@ -14,7 +15,8 @@ class Role(models.Model):
 
 
 class User(models.Model):
-    login = models.CharField(primary_key=True, max_length=50, unique=True, blank=False)
+    login = models.CharField(
+        primary_key=True, max_length=50, unique=True, blank=False)
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True)
     password = models.CharField(max_length=50, blank=True)
@@ -26,12 +28,14 @@ class User(models.Model):
     def str(self):
         return '{}'.format(self.login)
 
+
 class City(models.Model):
     name = models.CharField(max_length=50, unique=True, blank=False)
     code = models.CharField(max_length=50, null=True)
 
     def str(self):
         return '{}'.format(self.name)
+
 
 class State(models.Model):
     name = models.CharField(max_length=50, unique=False, blank=False)
@@ -40,12 +44,14 @@ class State(models.Model):
     def str(self):
         return '{}'.format(self.name)
 
+
 class Country(models.Model):
     name = models.CharField(max_length=50, unique=False, blank=False)
     code = models.CharField(max_length=50, null=True)
 
     def str(self):
         return '{}'.format(self.name)
+
 
 class Location(models.Model):
     description = models.CharField(max_length=200, blank=True)
@@ -67,6 +73,7 @@ class Location(models.Model):
     def str(self):
         return '{}'.format(self.name)
 
+
 class Measurement(models.Model):
     name = models.CharField(max_length=50, blank=False)
     unit = models.CharField(max_length=50, blank=False)
@@ -77,9 +84,12 @@ class Measurement(models.Model):
     def str(self):
         return '{} {}'.format(self.name, self.unit)
 
+
 class Station(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, default=None)
+    location = models.ForeignKey(
+        Location, on_delete=models.CASCADE, default=None)
+
     class Meta:
         unique_together = ('user', 'location')
     last_activity = models.DateTimeField(auto_now_add=True)
@@ -88,15 +98,25 @@ class Station(models.Model):
     def str(self):
         return '%s %s %s' % (self.user, self.location, self.last_activity)
 
+
 class Data(models.Model):
+
+    def base_time_now():
+        now = timezone.now()
+        return datetime(now.year, now.month, now.day, now.hour, tzinfo=now.tzinfo)
+
     station = models.ForeignKey(Station, on_delete=models.CASCADE)
     measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
-    value = models.FloatField(blank=False)
-    time = models.DateTimeField(primary_key=True, default=timezone.now)
+    min_value = models.FloatField(null=True, blank=True, default=None)
+    max_value = models.FloatField(null=True, blank=True, default=None)
+    length = models.IntegerField(default=0)
+    avg_value = models.FloatField(null=True, blank=True, default=None)
+    values = models.CharField(null=True, blank=True, default=None)
+    base_time = models.DateTimeField(primary_key=True, default=base_time_now)
 
     def save(self, *args, **kwargs):
         self.save_and_smear_timestamp(*args, **kwargs)
-    
+
     def save_and_smear_timestamp(self, *args, **kwargs):
         """Recursivly try to save by incrementing the timestamp on duplicate error"""
         try:
@@ -105,18 +125,21 @@ class Data(models.Model):
             # Only handle the error:
             #   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "1_1_farms_sensorreading_pkey"
             #   DETAIL:  Key ("time")=(2020-10-01 22:33:52.507782+00) already exists.
-            if all (k in exception.args[0] for k in ("Key","time", "already exists")):
+            if all(k in exception.args[0] for k in ("Key", "base_time", "already exists")):
                 # Increment the timestamp by 1 µs and try again
-                self.time = self.time + timedelta(microseconds=1)
+                self.base_time = self.base_time + timedelta(microseconds=1)
                 self.save_and_smear_timestamp(*args, **kwargs)
 
     def str(self):
-        return '{} {} {} {}'.format(self.value, self.time, self.station, self.measurement)
+        return '{} {} {} {} {} {} {}'.format(self.values, self.base_time, self.station, self.measurement, self.min_value, self.max_value, self.avg_value)
 
     def toDict(self):
         return {
             'station': str(self.station),
             'measurement': str(self.measurement),
-            'value': self.value,
-            'time': self.time
+            'values': self.values,
+            'base_time': self.base_time,
+            'min_value': self.min_value,
+            'max_value': self.max_value,
+            'avg_value': self.avg_value
         }

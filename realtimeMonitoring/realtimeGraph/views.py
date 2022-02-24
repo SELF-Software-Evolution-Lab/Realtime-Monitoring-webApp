@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, tzinfo
 import json
 from os import name
 import time
 
 from django.db.models.aggregates import Count
 from typing import Dict
+from flask import jsonify
 import requests
 import uuid
 import tempfile
@@ -19,6 +20,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.shortcuts import render
+from django.utils import timezone
 from random import randint
 from .models import City, Country, Data, Location, Measurement, Role, State, Station, User
 from realtimeMonitoring import settings
@@ -143,17 +145,24 @@ class DashboardView(TemplateView):
                 print("LAST_WEEK: Filtering measure: ", measure)
                 # time__gte=start.date() Filtro para último día
                 raw_data = Data.objects.filter(
-                    station=stationO, time__gte=start, measurement=measure).order_by('-time')[:50]
+                    station=stationO, base_time__gte=start, measurement=measure).order_by('-base_time')[:2]
                 print("LAST_WEEK: Raw data: ", len(raw_data))
-                data = [[(d.toDict()['time'].timestamp() *
-                          1000) // 1, d.toDict()['value']] for d in raw_data]
+                data = []
+                for reg in raw_data:
+                    values = json.loads(reg.value)
+                    for value in values:
+                        data.append(
+                            (((reg.base_time.timestamp() + value) * 1000 // 1), values[value]))
+
+                # data = [[(d.toDict()['base_time'].timestamp() *
+                #           1000) // 1, d.toDict()['value']] for d in raw_data]
 
                 minVal = raw_data.aggregate(
-                    Min('value'))['value__min']
+                    Min('min_value'))['min_value__min']
                 maxVal = raw_data.aggregate(
-                    Max('value'))['value__max']
-                avgVal = raw_data.aggregate(
-                    Avg('value'))['value__avg']
+                    Max('max_value'))['max_value__max']
+                avgVal = sum(reg.avg * reg.length for reg in raw_data) / \
+                    sum(reg.length for reg in raw_data)
                 result[measure.name] = {
                     'min': minVal if minVal != None else 0,
                     'max': maxVal if maxVal != None else 0,
@@ -302,10 +311,34 @@ Actualiza también el tiempo de última actividad de la estación.
 '''
 
 
-def create_data(value: float, station: Station, measure: Measurement):
-    data = Data(value=value, station=station, measurement=measure)
+def create_data(value: float, station: Station, measure: Measurement, time: datetime = timezone.now()):
+    base_time = datetime(time.year, time.month, time.day,
+                         time.hour, tzinfo=time.tzinfo)
+    secs = int(time.timestamp() % 3600)
+
+    data, created = Data.objects.get_or_create(
+        base_time=base_time, station=station, measurement=measure)
+
+    if created:
+        values = {}
+    else:
+        values = json.loads(data.values)
+
+    values[secs] = value
+
+    vals = values.values()
+
+    length = len(vals)
+
+    data.max_value = max(vals) if length > 0 else 0
+    data.min_value = min(vals) if length > 0 else 0
+    data.avg_value = sum(vals) / length if length > 0 else 0
+    data.length = length
+
+    data.values = json.dumps(values)
+
     data.save()
-    station.last_activity = data.time
+    station.last_activity = data.base_time
     station.save()
     return(data)
 
@@ -316,11 +349,11 @@ Adicional a la función anterior, esta crea la medición con una fecha específi
 Se usa para la importación de datos.
 '''
 
-
-def create_data_with_date(value: float, station: Station, measure: Measurement, date: datetime):
-    data = Data(value=value, station=station, measurement=measure, time=date)
-    data.save()
-    return(data)
+# TODO No está ajustada para el modelo de datos de Data con values = json.
+# def create_data_with_date(value: float, station: Station, measure: Measurement, date: datetime):
+#     data = Data(value=value, station=station, measurement=measure, time=date)
+#     data.save()
+#     return(data)
 
 
 '''
@@ -330,8 +363,10 @@ Trae la última medición de una estación y variable en específico {station, m
 
 def get_last_measure(station, measurement):
     last_measure = Data.objects.filter(
-        station=station, measurement=measurement).latest('time')
-    return(last_measure.value)
+        station=station, measurement=measurement).latest('base_time')
+    values = json.loads(last_measure.values)
+    max_sec = max(values.keys())
+    return values[max_sec]
 
 
 class LoginView(TemplateView):
@@ -456,15 +491,15 @@ class RemaView(TemplateView):
         for location in locations:
             stations = Station.objects.filter(location=location)
             locationData = Data.objects.filter(
-                station__in=stations, measurement__name=selectedMeasure.name,  time__gte=start.date(), time__lte=end.date())
+                station__in=stations, measurement__name=selectedMeasure.name,  base_time__gte=start.date(), base_time__lte=end.date())
             if locationData.count() <= 0:
                 continue
             minVal = locationData.aggregate(
-                Min('value'))['value__min']
+                Min('min_value'))['value__min']
             maxVal = locationData.aggregate(
-                Max('value'))['value__max']
-            avgVal = locationData.aggregate(
-                Avg('value'))['value__avg']
+                Max('max_value'))['value__max']
+            avgVal = sum(reg.avg * reg.length for reg in locationData) / \
+                sum(reg.length for reg in locationData)
             data.append({
                 'name': f'{location.city.name}, {location.state.name}, {location.country.name}',
                 'lat': location.lat,
@@ -496,7 +531,7 @@ def download_csv_data(request):
     start, end = get_daterange(request)
     print("Start, end", start, end)
     data = Data.objects.filter(
-        time__gte=start.date(), time__lte=end.date())
+        base_time__gte=start.date(), base_time__lte=end.date())
     print("Data ref got")
     tmpFile = tempfile.NamedTemporaryFile(delete=False)
     print("Creating file")
