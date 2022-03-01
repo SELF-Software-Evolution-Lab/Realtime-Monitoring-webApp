@@ -342,7 +342,7 @@ def generateMockData():
 
     count = 0
 
-    while current_date < datetime.now() and count < 1200000:
+    while current_date < datetime.now() and count < 1000000:
         rand_station = random.randint(0, len(stations)-1)
         rand_measure = random.randint(0, len(measures)-1)
         station = stations[rand_station]

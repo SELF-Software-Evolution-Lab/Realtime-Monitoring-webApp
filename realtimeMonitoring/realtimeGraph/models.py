@@ -2,6 +2,8 @@ from django.db import models, IntegrityError
 from django.db.models.fields import DateTimeField
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.contrib.postgres.fields import ArrayField
+import psycopg2
 
 USER_ROLE_ID = 1
 
@@ -101,6 +103,12 @@ class Station(models.Model):
 
 class Data(models.Model):
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['base_time', 'station_id', 'measurement_id'], name='unique data measure')
+        ]
+
     def base_time_now():
         now = timezone.now()
         return datetime(now.year, now.month, now.day, now.hour, tzinfo=now.tzinfo)
@@ -111,8 +119,10 @@ class Data(models.Model):
     max_value = models.FloatField(null=True, blank=True, default=None)
     length = models.IntegerField(default=0)
     avg_value = models.FloatField(null=True, blank=True, default=None)
-    values = models.CharField(null=True, blank=True, default=None)
-    base_time = models.DateTimeField(primary_key=True, default=base_time_now)
+    times = ArrayField(models.FloatField(), default=list)
+    values = ArrayField(models.FloatField(), default=list)
+    base_time = models.DateTimeField(default=base_time_now)
+    created_at = models.DateTimeField(auto_now_add=True, primary_key=True)
 
     def save(self, *args, **kwargs):
         self.save_and_smear_timestamp(*args, **kwargs)
@@ -121,11 +131,11 @@ class Data(models.Model):
         """Recursivly try to save by incrementing the timestamp on duplicate error"""
         try:
             super().save(*args, **kwargs)
-        except IntegrityError as exception:
+        except psycopg2.errors.UniqueViolation as exception:
             # Only handle the error:
             #   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "1_1_farms_sensorreading_pkey"
             #   DETAIL:  Key ("time")=(2020-10-01 22:33:52.507782+00) already exists.
-            if all(k in exception.args[0] for k in ("Key", "base_time", "already exists")):
+            if all(k in exception.args[0] for k in ("base_time", "already exists")):
                 # Increment the timestamp by 1 µs and try again
                 self.base_time = self.base_time + timedelta(microseconds=1)
                 self.save_and_smear_timestamp(*args, **kwargs)

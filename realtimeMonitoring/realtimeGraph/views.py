@@ -3,11 +3,6 @@ import json
 from os import name
 import time
 
-from django.db.models.aggregates import Count
-from typing import Dict
-from flask import jsonify
-import requests
-import uuid
 import tempfile
 from realtimeMonitoring.utils import getCityCoordinates
 
@@ -149,10 +144,11 @@ class DashboardView(TemplateView):
                 print("LAST_WEEK: Raw data: ", len(raw_data))
                 data = []
                 for reg in raw_data:
-                    values = json.loads(reg.value)
-                    for value in values:
+                    values = reg.values
+                    times = reg.times
+                    for i in range(len(values)):
                         data.append(
-                            (((reg.base_time.timestamp() + value) * 1000 // 1), values[value]))
+                            (((reg.base_time.timestamp() + times[i]) * 1000 // 1), values[i]))
 
                 # data = [[(d.toDict()['base_time'].timestamp() *
                 #           1000) // 1, d.toDict()['value']] for d in raw_data]
@@ -320,25 +316,26 @@ def create_data(value: float, station: Station, measure: Measurement, time: date
         base_time=base_time, station=station, measurement=measure)
 
     if created:
-        values = {}
+        values = []
+        times = []
     else:
-        values = json.loads(data.values)
+        values = data.values
+        times = data.times
 
-    values[secs] = value
+    values.append(value)
+    times.append(secs)
 
-    vals = values.values()
+    length = len(times)
 
-    length = len(vals)
-
-    data.max_value = max(vals) if length > 0 else 0
-    data.min_value = min(vals) if length > 0 else 0
-    data.avg_value = sum(vals) / length if length > 0 else 0
+    data.max_value = max(values) if length > 0 else 0
+    data.min_value = min(values) if length > 0 else 0
+    data.avg_value = sum(values) / length if length > 0 else 0
     data.length = length
 
-    data.values = json.dumps(values)
+    data.values = values
 
     data.save()
-    station.last_activity = data.base_time
+    station.last_activity = time
     station.save()
     return(data)
 
@@ -364,9 +361,7 @@ Trae la última medición de una estación y variable en específico {station, m
 def get_last_measure(station, measurement):
     last_measure = Data.objects.filter(
         station=station, measurement=measurement).latest('base_time')
-    values = json.loads(last_measure.values)
-    max_sec = max(values.keys())
-    return values[max_sec]
+    return last_measure.values[-1]
 
 
 class LoginView(TemplateView):
