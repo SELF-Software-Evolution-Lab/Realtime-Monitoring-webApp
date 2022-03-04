@@ -157,7 +157,7 @@ class DashboardView(TemplateView):
                     Min('min_value'))['min_value__min']
                 maxVal = raw_data.aggregate(
                     Max('max_value'))['max_value__max']
-                avgVal = sum(reg.avg * reg.length for reg in raw_data) / \
+                avgVal = sum(reg.avg_value * reg.length for reg in raw_data) / \
                     sum(reg.length for reg in raw_data)
                 result[measure.name] = {
                     'min': minVal if minVal != None else 0,
@@ -327,6 +327,7 @@ def create_data(value: float, station: Station, measure: Measurement, time: date
 
     length = len(times)
 
+    # Pueden quedar threads abiertos y bloquean memoria/cpu. Probar consultas sin estos valores
     data.max_value = max(values) if length > 0 else 0
     data.min_value = min(values) if length > 0 else 0
     data.avg_value = sum(values) / length if length > 0 else 0
@@ -490,11 +491,13 @@ class RemaView(TemplateView):
             if locationData.count() <= 0:
                 continue
             minVal = locationData.aggregate(
-                Min('min_value'))['value__min']
+                Min('min_value'))['min_value__min']
             maxVal = locationData.aggregate(
-                Max('max_value'))['value__max']
-            avgVal = sum(reg.avg * reg.length for reg in locationData) / \
-                sum(reg.length for reg in locationData)
+                Max('max_value'))['max_value__max']
+            # avgVal = sum(reg.avg_value * reg.length for reg in locationData) / \
+            #     sum(reg.length for reg in locationData) # TODO Probar sin este calculo. Usar profiling. Memory profiler
+            avgVal = locationData.aggregate(
+                Avg('avg_value'))['avg_value__avg']
             data.append({
                 'name': f'{location.city.name}, {location.state.name}, {location.country.name}',
                 'lat': location.lat,

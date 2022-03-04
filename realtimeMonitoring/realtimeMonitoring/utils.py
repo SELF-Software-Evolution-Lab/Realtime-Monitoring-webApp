@@ -1,6 +1,7 @@
 from django.utils.timezone import activate
 from realtimeGraph.models import Measurement, Role, Station, User, Data, State, City, Country, Location
 from django.contrib.auth.models import User as AuthUser
+from django.db.models import Max, Sum
 from ldap3 import Server, Connection, ALL, SUBTREE, Tls, NTLM
 from django_cron import CronJobBase, Schedule
 from datetime import datetime, timedelta
@@ -290,7 +291,13 @@ def generateMockData():
 
     print("Starting generation of mock data...")
 
-    if (Data.objects.count() > 1000):
+    query_len = Data.objects.aggregate(Sum("length"))
+    print("Query len:", query_len)
+    data_len = query_len["length__sum"]
+
+    print("Data in database:", data_len)
+
+    if (data_len > 1000000):
         print("Mock data already generated.")
         return
 
@@ -338,11 +345,16 @@ def generateMockData():
     print("Total stations:", len(stations))
     print("Total measures:", len(measures))
 
-    current_date = datetime.strptime(initial_date, "%d/%m/%Y")
+    if data_len > 0:
+        cd_query = Data.objects.aggregate(Max("base_time"))
+        current_date = cd_query["base_time__max"]
+        current_date = current_date + timedelta(hours=1)
+    else:
+        current_date = datetime.strptime(initial_date, "%d/%m/%Y")
 
-    count = 0
+    count = data_len if data_len != None else 0
 
-    while current_date < datetime.now() and count < 1000000:
+    while count <= 1000000:
         rand_station = random.randint(0, len(stations)-1)
         rand_measure = random.randint(0, len(measures)-1)
         station = stations[rand_station]
