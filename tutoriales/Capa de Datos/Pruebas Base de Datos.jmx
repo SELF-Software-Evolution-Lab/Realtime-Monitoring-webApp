@@ -7,7 +7,7 @@
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-        <collectionProp name="Arguments.arguments"/>
+        <collectionProp name="Arguments.arguments" />
       </elementProp>
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
@@ -27,10 +27,10 @@
         <stringProp name="dbUrl">jdbc:postgresql://3.210.203.100:5432/iot_data</stringProp>
         <stringProp name="driver">org.postgresql.Driver</stringProp>
         <stringProp name="username">dbadmin</stringProp>
-        <stringProp name="password">uniandesIOT2022</stringProp>
+        <stringProp name="password">uniandesIOT1234*</stringProp>
         <stringProp name="connectionProperties"></stringProp>
       </JDBCDataSource>
-      <hashTree/>
+      <hashTree />
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
@@ -61,7 +61,7 @@
             <stringProp name="resultVariable"></stringProp>
             <stringProp name="variableNames"></stringProp>
           </JDBCSampler>
-          <hashTree/>
+          <hashTree />
         </hashTree>
         <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
@@ -99,7 +99,7 @@
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
-        <hashTree/>
+        <hashTree />
         <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -136,7 +136,7 @@
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
-        <hashTree/>
+        <hashTree />
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -173,7 +173,7 @@
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
-        <hashTree/>
+        <hashTree />
       </hashTree>
       <JDBCDataSource guiclass="TestBeanGUI" testclass="JDBCDataSource" testname="DB iottimescale timescale config" enabled="true">
         <stringProp name="dataSource">testTimescale</stringProp>
@@ -190,10 +190,10 @@
         <stringProp name="dbUrl">jdbc:postgresql://3.239.109.115:5432/iot_data</stringProp>
         <stringProp name="driver">org.postgresql.Driver</stringProp>
         <stringProp name="username">dbadmin</stringProp>
-        <stringProp name="password">uniandesIOT2022</stringProp>
+        <stringProp name="password">uniandesIOT1234*</stringProp>
         <stringProp name="connectionProperties"></stringProp>
       </JDBCDataSource>
-      <hashTree/>
+      <hashTree />
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Timescale" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
@@ -244,7 +244,7 @@
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
-        <hashTree/>
+        <hashTree />
         <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -281,7 +281,7 @@
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
-        <hashTree/>
+        <hashTree />
         <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -318,7 +318,7 @@
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
-        <hashTree/>
+        <hashTree />
         <RandomController guiclass="RandomControlGui" testclass="RandomController" testname="Random Controller" enabled="true">
           <intProp name="InterleaveControl.style">1</intProp>
         </RandomController>
@@ -335,7 +335,7 @@
             <stringProp name="resultSetMaxRows"></stringProp>
             <stringProp name="resultSetHandler">Store as String</stringProp>
           </JDBCSampler>
-          <hashTree/>
+          <hashTree />
         </hashTree>
       </hashTree>
     </hashTree>
