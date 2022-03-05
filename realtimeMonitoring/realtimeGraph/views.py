@@ -140,7 +140,7 @@ class DashboardView(TemplateView):
                 print("LAST_WEEK: Filtering measure: ", measure)
                 # time__gte=start.date() Filtro para último día
                 raw_data = Data.objects.filter(
-                    station=stationO, base_time__gte=start, measurement=measure).order_by('-base_time')[:2]
+                    station=stationO, time__gte=start, measurement=measure).order_by('-base_time')[:2]
                 print("LAST_WEEK: Raw data: ", len(raw_data))
                 data = []
                 for reg in raw_data:
@@ -238,7 +238,6 @@ def get_or_create_location(city, state, country):
     loc, created = Location.objects.get_or_create(
         city=cityO, state=stateO, country=countryO)
     if loc.lat == None:
-        # TODO Geolocate including state and country #, {state}, {country}')
         lat, lng = getCityCoordinates(f'{city}, {state}, {country}')
         loc.lat = lat
         loc.lng = lng
@@ -260,7 +259,6 @@ def get_or_create_location_only_city(city):
     loc, created = Location.objects.get_or_create(
         city=cityO, state=stateO, country=countryO)
     if loc.lat == None:
-        # TODO Geolocate including state and country #, {state}, {country}')
         lat, lng = getCityCoordinates(f'{city}, Colombia')
         loc.lat = lat
         loc.lng = lng
@@ -313,6 +311,7 @@ def create_data(value: float, station: Station, measure: Measurement, time: date
     secs = int(time.timestamp() % 3600)
 
     data, created = Data.objects.get_or_create(
+        time=base_time,
         base_time=base_time, station=station, measurement=measure)
 
     if created:
@@ -407,6 +406,21 @@ class HistoricalView(TemplateView):
         return render(request, self.template_name)
 
 
+class MapJsonView(TemplateView):
+
+    '''
+    Get de /map.json. Si el usuario no está logueado se redirige a la página de login.
+    Envía la página de template de map.json.
+    El archivo se descarga directamente del csv actualizado. No hay procesamiento ni filtros.
+    '''
+
+    def get(self, request, **kwargs):
+        return JsonResponse({
+            'data': [
+            ]
+        })
+
+
 class RemaView(TemplateView):
     template_name = 'rema.html'
 
@@ -487,7 +501,7 @@ class RemaView(TemplateView):
         for location in locations:
             stations = Station.objects.filter(location=location)
             locationData = Data.objects.filter(
-                station__in=stations, measurement__name=selectedMeasure.name,  base_time__gte=start.date(), base_time__lte=end.date())
+                station__in=stations, measurement__name=selectedMeasure.name,  time__gte=start.date(), time__lte=end.date())
             if locationData.count() <= 0:
                 continue
             minVal = locationData.aggregate(
@@ -529,7 +543,7 @@ def download_csv_data(request):
     start, end = get_daterange(request)
     print("Start, end", start, end)
     data = Data.objects.filter(
-        base_time__gte=start.date(), base_time__lte=end.date())
+        time__gte=start.date(), time__lte=end.date())
     print("Data ref got")
     tmpFile = tempfile.NamedTemporaryFile(delete=False)
     print("Creating file")

@@ -11,14 +11,14 @@ class Migration(migrations.Migration):
 
     operations = [
         # Crea la hipertabla de timescale con chunks de 3 días.
-        # migrations.RunSQL(
-        #     'SELECT create_hypertable(\'"realtimeGraph_data"\', \'time\', chunk_time_interval=>259200000000);'),
-        # # Configura la compresión para estaciones y variables. Son llaves foráneas de la tabla principal.
-        # migrations.RunSQL(
-        #     "ALTER TABLE \"realtimeGraph_data\" SET (timescaledb.compress, timescaledb.compress_segmentby = 'station_id, measurement_id');"
-        # ),
-        # # Comprime los datos cada 7 días.
-        # migrations.RunSQL(
-        #     'SELECT add_compression_policy(\'"realtimeGraph_data"\', INTERVAL \'7 days\');'
-        # ),
+        migrations.RunSQL(
+            'SELECT create_hypertable(\'"realtimeGraph_data"\', \'time\', chunk_time_interval=>259200000000);'),
+        # Configura la compresión para estaciones y variables. Son llaves foráneas de la tabla principal.
+        migrations.RunSQL(
+            "ALTER TABLE \"realtimeGraph_data\" SET (timescaledb.compress, timescaledb.compress_segmentby = 'station_id, measurement_id');"
+        ),
+        # Comprime los datos cada 7 días.
+        migrations.RunSQL(
+            'SELECT add_compression_policy(\'"realtimeGraph_data"\', INTERVAL \'7 days\');'
+        ),
     ]

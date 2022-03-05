@@ -293,7 +293,7 @@ def generateMockData():
 
     query_len = Data.objects.aggregate(Sum("length"))
     print("Query len:", query_len)
-    data_len = query_len["length__sum"]
+    data_len = query_len["length__sum"] or 0
 
     print("Data in database:", data_len)
 
