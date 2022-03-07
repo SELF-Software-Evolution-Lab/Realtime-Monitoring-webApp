@@ -3,6 +3,21 @@ from django.db.models.fields import DateTimeField
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    Iterable,
+    Iterator,
+    List,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 import psycopg2
 
 USER_ROLE_ID = 1
@@ -13,7 +28,7 @@ class Role(models.Model):
     active = models.BooleanField(default=True)
 
     def str(self):
-        return '{}'.format(self.name)
+        return "{}".format(self.name)
 
 
 class User(models.Model):
@@ -28,7 +43,7 @@ class User(models.Model):
     active = models.BooleanField(default=True)
 
     def str(self):
-        return '{}'.format(self.login)
+        return "{}".format(self.login)
 
 
 class City(models.Model):
@@ -36,7 +51,7 @@ class City(models.Model):
     code = models.CharField(max_length=50, null=True)
 
     def str(self):
-        return '{}'.format(self.name)
+        return "{}".format(self.name)
 
 
 class State(models.Model):
@@ -44,7 +59,7 @@ class State(models.Model):
     code = models.CharField(max_length=50, null=True)
 
     def str(self):
-        return '{}'.format(self.name)
+        return "{}".format(self.name)
 
 
 class Country(models.Model):
@@ -52,7 +67,7 @@ class Country(models.Model):
     code = models.CharField(max_length=50, null=True)
 
     def str(self):
-        return '{}'.format(self.name)
+        return "{}".format(self.name)
 
 
 class Location(models.Model):
@@ -61,19 +76,16 @@ class Location(models.Model):
         max_digits=9, decimal_places=6, null=True, blank=True)
     lng = models.DecimalField(
         max_digits=9, decimal_places=6, null=True, blank=True)
-    city = models.ForeignKey(
-        City, on_delete=models.CASCADE)
-    state = models.ForeignKey(
-        State, on_delete=models.CASCADE)
-    country = models.ForeignKey(
-        Country, on_delete=models.CASCADE)
+    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
     class Meta:
-        unique_together = ('city', 'state', 'country')
+        unique_together = ("city", "state", "country")
 
     def str(self):
-        return '{}'.format(self.name)
+        return "{}".format(self.name)
 
 
 class Measurement(models.Model):
@@ -84,7 +96,7 @@ class Measurement(models.Model):
     active = active = models.BooleanField(default=True)
 
     def str(self):
-        return '{} {}'.format(self.name, self.unit)
+        return "{} {}".format(self.name, self.unit)
 
 
 class Station(models.Model):
@@ -93,31 +105,29 @@ class Station(models.Model):
         Location, on_delete=models.CASCADE, default=None)
 
     class Meta:
-        unique_together = ('user', 'location')
+        unique_together = ("user", "location")
+
     last_activity = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
 
     def str(self):
-        return '%s %s %s' % (self.user, self.location, self.last_activity)
+        return "%s %s %s" % (self.user, self.location, self.last_activity)
 
 
 class DataQuerySet(models.query.QuerySet):
-    def get_or_create(self, time=None, base_time=None, station=None, measurement=None, min_value=None, max_value=None, length=None, avg_value=None, times=None, values=None):
+
+    def get_or_create(
+        self, defaults: Optional[MutableMapping[str, Any]] = ..., **kwargs: Any,
+    ):
         try:
-            return (Data.objects.get(
-                station=station, measurement=measurement, base_time=base_time), False)
+            return (
+                Data.objects.get(**kwargs),
+                False,
+            )
         except Data.DoesNotExist:
+            kwargs.update(defaults or {})
             data = Data(
-                time=time,
-                base_time=base_time,
-                station=station,
-                measurement=measurement,
-                min_value=min_value,
-                max_value=max_value,
-                length=length,
-                avg_value=avg_value,
-                times=times,
-                values=values
+                **kwargs
             )
             data.save()
             return data, True
@@ -135,14 +145,20 @@ class Data(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['base_time', 'station_id', 'measurement_id'], name='unique data measure')
+                fields=["time", "base_time", "station_id", "measurement_id"],
+                name="unique data measure",
+            )
         ]
 
     def base_time_now():
         now = timezone.now()
         return datetime(now.year, now.month, now.day, now.hour, tzinfo=now.tzinfo)
 
-    time = models.DateTimeField(default=base_time_now, primary_key=True)
+    def timestamp_now():
+        now = timezone.now()
+        return int(now.timestamp() * 1000000)
+
+    time = models.BigIntegerField(default=timestamp_now, primary_key=True)
     base_time = models.DateTimeField(default=base_time_now)
     station = models.ForeignKey(Station, on_delete=models.CASCADE)
     measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
@@ -165,22 +181,31 @@ class Data(models.Model):
             #   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "1_1_farms_sensorreading_pkey"
             #   DETAIL:  Key ("time")=(2020-10-01 22:33:52.507782+00) already exists.
             if all(k in exception.args[0] for k in ("time", "already exists")):
-                print("Incrementing PK")
                 # Increment the timestamp by 1 µs and try again
-                self.time = self.time + timedelta(microseconds=1)
+                self.time = self.time + 1
                 self.save_and_smear_timestamp(*args, **kwargs)
 
-    def str(self):
-        return 'Data: %s %s %s %s %s %s %s %s' % (self.time, self.station, self.measurement, self.min_value, self.max_value, self.length, self.avg_value, self.times, self.values)
+    def __str__(self):
+        return "Data: %s %s %s %s %s %s %s %s %s" % (
+            str(self.time),
+            str(self.station),
+            str(self.measurement),
+            str(self.min_value),
+            str(self.max_value),
+            str(self.length),
+            str(self.avg_value),
+            str(self.times),
+            str(self.values),
+        )
 
     def toDict(self):
         return {
-            'station': str(self.station),
-            'measurement': str(self.measurement),
-            'times': self.times,
-            'values': self.values,
-            'base_time': self.base_time,
-            'min_value': self.min_value,
-            'max_value': self.max_value,
-            'avg_value': self.avg_value
+            "station": str(self.station),
+            "measurement": str(self.measurement),
+            "times": self.times,
+            "values": self.values,
+            "base_time": self.base_time,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+            "avg_value": self.avg_value,
         }
