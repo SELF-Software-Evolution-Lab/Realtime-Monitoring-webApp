@@ -4,6 +4,7 @@ from django.contrib.auth.models import User as AuthUser
 from ldap3 import Server, Connection, ALL, SUBTREE, Tls, NTLM
 from django_cron import CronJobBase, Schedule
 from datetime import datetime, timedelta
+from django.db.models import Max, Sum
 import datetime as datetimelib
 import ssl
 import random
@@ -281,11 +282,16 @@ Se usa para hacer pruebas de carga.
 '''
 
 
-def generateMockData():
+def generateMockData(quantity: int = 500000):
+    from realtimeGraph.views import create_data
 
-    print("Starting generation of mock data...")
+    print("Starting generation of {} data...".format(quantity))
 
-    if (Data.objects.count() > 1000000):
+    data_len = Data.objects.count()
+
+    print("Data in database:", data_len)
+
+    if data_len > quantity:
         print("Mock data already generated.")
         return
 
@@ -333,11 +339,16 @@ def generateMockData():
     print("Total stations:", len(stations))
     print("Total measures:", len(measures))
 
-    current_date = datetime.strptime(initial_date, "%d/%m/%Y")
+    if data_len > 0:
+        cd_query = Data.objects.aggregate(Max("time"))
+        current_date = cd_query["time__max"]
+        current_date = current_date + timedelta(hours=1)
+    else:
+        current_date = datetime.strptime(initial_date, "%d/%m/%Y")
 
-    count = 0
+    count = data_len if data_len != None else 0
 
-    while current_date < datetime.now():
+    while count <= quantity:
         rand_station = random.randint(0, len(stations)-1)
         rand_measure = random.randint(0, len(measures)-1)
         station = stations[rand_station]
