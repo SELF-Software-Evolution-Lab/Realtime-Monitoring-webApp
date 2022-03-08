@@ -45,7 +45,8 @@ def register_users():
             login = login.strip()
             passwd = passwd.strip()
             try:
-                role, created = Role.objects.get_or_create(name="USER", active=True)
+                role, created = Role.objects.get_or_create(
+                    name="USER", active=True)
                 userDB, userCreated = User.objects.get_or_create(
                     login=login,
                     defaults={
@@ -57,7 +58,8 @@ def register_users():
                 userAuth = AuthUser.objects.get(username=login)
                 registered_count += 1
             except AuthUser.DoesNotExist:
-                AuthUser.objects.create_user(login, login + "@uniandes.edu.co", passwd)
+                AuthUser.objects.create_user(
+                    login, login + "@uniandes.edu.co", passwd)
                 registering_count += 1
             except Exception as e:
                 print(f"Error registering u: {login}. Error: {e}")
@@ -195,7 +197,8 @@ def writeDataCSVFile():
             medicion = measure.value
             lines += (
                 ",".join(
-                    [usuario, ciudad, estado, pais, fecha, variable, str(medicion)]
+                    [usuario, ciudad, estado, pais,
+                        fecha, variable, str(medicion)]
                 )
                 + "\n"
             )
@@ -220,7 +223,8 @@ def updateCSVFile():
         strDate = last_register.split(",")[4]
         last_date = datetime.strptime(strDate, "%Y-%m-%d %H:%M:%S")
         last_date = last_date + datetimelib.timedelta(0, 1)
-    new_data = Data.objects.filter(time__gt=last_date, time__lte=datetime.now())
+    new_data = Data.objects.filter(
+        time__gt=last_date, time__lte=datetime.now())
     print("New data: ", len(new_data))
     with open(filepath, "a", encoding="utf-8") as data_file:
         lines = ""
@@ -255,7 +259,8 @@ def updateCSVFile():
             medicion = measure.value
             lines += (
                 ",".join(
-                    [usuario, ciudad, estado, pais, fecha, variable, str(medicion)]
+                    [usuario, ciudad, estado, pais,
+                        fecha, variable, str(medicion)]
                 )
                 + "\n"
             )
@@ -366,8 +371,10 @@ def generateMockData():
         print("Mock data already generated.")
         return
 
-    measure1, created = Measurement.objects.get_or_create(name="Temperatura", unit="°C")
-    measure2, created = Measurement.objects.get_or_create(name="Humedad", unit="%")
+    measure1, created = Measurement.objects.get_or_create(
+        name="Temperatura", unit="°C")
+    measure2, created = Measurement.objects.get_or_create(
+        name="Humedad", unit="%")
 
     role, created = Role.objects.get_or_create(name="TEST")
 
@@ -390,8 +397,10 @@ def generateMockData():
         city=city2, state=state2, country=country2, lat=19.4326, lng=99.1332
     )
 
-    station1, created = Station.objects.get_or_create(user=user1, location=location1)
-    station2, created = Station.objects.get_or_create(user=user2, location=location2)
+    station1, created = Station.objects.get_or_create(
+        user=user1, location=location1)
+    station2, created = Station.objects.get_or_create(
+        user=user2, location=location2)
 
     stations = []
     measures = []
