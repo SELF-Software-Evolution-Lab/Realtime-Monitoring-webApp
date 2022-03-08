@@ -15,7 +15,8 @@ class Role(models.Model):
 
 
 class User(models.Model):
-    login = models.CharField(primary_key=True, max_length=50, unique=True, blank=False)
+    login = models.CharField(
+        primary_key=True, max_length=50, unique=True, blank=False)
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True)
     password = models.CharField(max_length=50, blank=True)
@@ -27,12 +28,14 @@ class User(models.Model):
     def str(self):
         return '{}'.format(self.login)
 
+
 class City(models.Model):
     name = models.CharField(max_length=50, unique=True, blank=False)
     code = models.CharField(max_length=50, null=True)
 
     def str(self):
         return '{}'.format(self.name)
+
 
 class State(models.Model):
     name = models.CharField(max_length=50, unique=False, blank=False)
@@ -41,12 +44,14 @@ class State(models.Model):
     def str(self):
         return '{}'.format(self.name)
 
+
 class Country(models.Model):
     name = models.CharField(max_length=50, unique=False, blank=False)
     code = models.CharField(max_length=50, null=True)
 
     def str(self):
         return '{}'.format(self.name)
+
 
 class Location(models.Model):
     description = models.CharField(max_length=200, blank=True)
@@ -66,7 +71,8 @@ class Location(models.Model):
         unique_together = ('city', 'state', 'country')
 
     def str(self):
-        return '{}'.format(self.name)
+        return "{} {} {}".format(self.city.name, self.state.name, self.country.name)
+
 
 class Measurement(models.Model):
     name = models.CharField(max_length=50, blank=False)
@@ -78,9 +84,12 @@ class Measurement(models.Model):
     def str(self):
         return '{} {}'.format(self.name, self.unit)
 
+
 class Station(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE, default=None)
+    location = models.ForeignKey(
+        Location, on_delete=models.CASCADE, default=None)
+
     class Meta:
         unique_together = ('user', 'location')
     last_activity = models.DateTimeField(auto_now_add=True)
@@ -88,6 +97,7 @@ class Station(models.Model):
 
     def str(self):
         return '%s %s %s' % (self.user, self.location, self.last_activity)
+
 
 class Data(models.Model):
     station = models.ForeignKey(Station, on_delete=models.CASCADE)
@@ -97,7 +107,7 @@ class Data(models.Model):
 
     def save(self, *args, **kwargs):
         self.save_and_smear_timestamp(*args, **kwargs)
-    
+
     def save_and_smear_timestamp(self, *args, **kwargs):
         """Recursivly try to save by incrementing the timestamp on duplicate error"""
         try:
@@ -106,7 +116,7 @@ class Data(models.Model):
             # Only handle the error:
             #   psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "1_1_farms_sensorreading_pkey"
             #   DETAIL:  Key ("time")=(2020-10-01 22:33:52.507782+00) already exists.
-            if all (k in exception.args[0] for k in ("Key","time", "already exists")):
+            if all(k in exception.args[0] for k in ("Key", "time", "already exists")):
                 # Increment the timestamp by 1 µs and try again
                 self.time = self.time + timedelta(microseconds=1)
                 self.save_and_smear_timestamp(*args, **kwargs)
