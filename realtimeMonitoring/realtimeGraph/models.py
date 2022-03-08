@@ -85,7 +85,7 @@ class Location(models.Model):
         unique_together = ("city", "state", "country")
 
     def str(self):
-        return "{}".format(self.name)
+        return "{} {} {}".format(self.city.name, self.state.name, self.country.name)
 
 
 class Measurement(models.Model):

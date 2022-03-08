@@ -356,10 +356,10 @@ Se usa para hacer pruebas de carga.
 """
 
 
-def generateMockData():
+def generateMockData(quantity: int = 500000):
     from realtimeGraph.views import create_data
 
-    print("Starting generation of mock data...")
+    print("Starting generation of {} data...".format(quantity))
 
     query_len = Data.objects.aggregate(Sum("length"))
     print("Query len:", query_len)
@@ -367,7 +367,7 @@ def generateMockData():
 
     print("Data in database:", data_len)
 
-    if data_len > 1000000:
+    if data_len > quantity:
         print("Mock data already generated.")
         return
 
@@ -426,7 +426,7 @@ def generateMockData():
 
     count = data_len if data_len != None else 0
 
-    while count <= 1000000:
+    while count <= quantity:
         rand_station = random.randint(0, len(stations) - 1)
         rand_measure = random.randint(0, len(measures) - 1)
         station = stations[rand_station]

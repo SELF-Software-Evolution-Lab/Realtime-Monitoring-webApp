@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_crontab",
     "realtimeGraph",
+    "data_generator",
 ]
 
 CRONJOBS = [("*/30 * * * *", "realtimeMonitoring.utils.updateCSVFile")]
