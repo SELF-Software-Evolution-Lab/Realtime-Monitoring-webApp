@@ -1,0 +1,8 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/../../../../../../../../../../../:\Users\andre\Documents\My New One Drive\OneDrive - Universidad de los Andes\MonitoriaIoT\MicroServices\Realtime-Monitoring-webApp\realtimeMonitoring\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
