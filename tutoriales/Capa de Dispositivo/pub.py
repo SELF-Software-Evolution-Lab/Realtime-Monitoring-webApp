@@ -9,9 +9,9 @@ import argparse
 parser = argparse.ArgumentParser(description='IOT Sensor Emulator')
 parser.add_argument("--host", type=str,
                     default="iotlab.virtual.uniandes.edu.co", help="MQTT Host")
-parser.add_argument("--user", type=str, required=True, help="MQTT User")
-parser.add_argument("--passwd", type=str, required=True, help="MQTT Password")
-parser.add_argument("--city", type=str, required=True, help="MQTT City")
+# parser.add_argument("--user", type=str, required=True, help="MQTT User")
+# parser.add_argument("--passwd", type=str, required=True, help="MQTT Password")
+# parser.add_argument("--city", type=str, required=True, help="MQTT City")
 
 args = parser.parse_args()
 
@@ -25,14 +25,16 @@ def on_publish(client, userdata, result):
 
 client.tls_set(ca_certs='ca.crt',
                tls_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_NONE)
-client.username_pw_set(args.user, args.passwd)
+# client.username_pw_set(args.user, args.passwd)
 client.on_publish = on_publish
 client.connect(args.host, 8082, 60)
 
 
 while True:
-    topic1 = "temperatura/{}/{}".format(args.city, args.user)
-    topic2 = "humedad/{}/{}".format(args.city, args.user)
+    # topic1 = "temperatura/{}/{}".format(args.city, args.user)
+    # topic2 = "humedad/{}/{}".format(args.city, args.user)
+    topic1 = "temperatura/"
+    topic2 = "humedad/"
     value1 = float(round(uniform(10, 30), 1))
     value2 = float(round(uniform(50, 99), 1))
     value1 = json.dumps({"value": value1})
