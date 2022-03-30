@@ -217,19 +217,15 @@
         "SecurityGroupEgress": [
           {
             "CidrIp": "0.0.0.0/0",
-            "Description": "allow access to MQTT protocol on TLS",
-            "FromPort": 0,
-            "IpProtocol": "tcp",
-            "ToPort": 65535
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1"
           }
         ],
         "SecurityGroupIngress": [
           {
             "CidrIp": "0.0.0.0/0",
             "Description": "allow access to MQTT protocol on TLS",
-            "FromPort": 0,
-            "IpProtocol": "tcp",
-            "ToPort": 65535
+            "IpProtocol": "-1"
           }
         ],
         "VpcId": {
