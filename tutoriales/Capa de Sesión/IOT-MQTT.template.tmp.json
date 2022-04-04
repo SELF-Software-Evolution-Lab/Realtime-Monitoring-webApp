@@ -1,0 +1,510 @@
+{
+  "Resources": {
+    "VPCB9E5F0B4": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-MQTT/VPC"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/Resource"
+      }
+    },
+    "VPCpublicSubnet1Subnet325F50B2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/17",
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "public"
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public"
+          },
+          {
+            "Key": "Name",
+            "Value": "IOT-MQTT/VPC/publicSubnet1"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet1/Subnet"
+      }
+    },
+    "VPCpublicSubnet1RouteTableF591E248": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-MQTT/VPC/publicSubnet1"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet1/RouteTable"
+      }
+    },
+    "VPCpublicSubnet1RouteTableAssociationBFFA43B7": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet1RouteTableF591E248"
+        },
+        "SubnetId": {
+          "Ref": "VPCpublicSubnet1Subnet325F50B2"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet1/RouteTableAssociation"
+      }
+    },
+    "VPCpublicSubnet1DefaultRoute19059ECD": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet1RouteTableF591E248"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VPCIGWB7E252D3"
+        }
+      },
+      "DependsOn": ["VPCVPCGW99B986DC"],
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet1/DefaultRoute"
+      }
+    },
+    "VPCpublicSubnet2Subnet2B2DFF71": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.0.128.0/17",
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "public"
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public"
+          },
+          {
+            "Key": "Name",
+            "Value": "IOT-MQTT/VPC/publicSubnet2"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet2/Subnet"
+      }
+    },
+    "VPCpublicSubnet2RouteTable55DAB1BB": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-MQTT/VPC/publicSubnet2"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet2/RouteTable"
+      }
+    },
+    "VPCpublicSubnet2RouteTableAssociation0849466B": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet2RouteTable55DAB1BB"
+        },
+        "SubnetId": {
+          "Ref": "VPCpublicSubnet2Subnet2B2DFF71"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet2/RouteTableAssociation"
+      }
+    },
+    "VPCpublicSubnet2DefaultRoute9ED4D6BC": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VPCpublicSubnet2RouteTable55DAB1BB"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VPCIGWB7E252D3"
+        }
+      },
+      "DependsOn": ["VPCVPCGW99B986DC"],
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/publicSubnet2/DefaultRoute"
+      }
+    },
+    "VPCIGWB7E252D3": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-MQTT/VPC"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/IGW"
+      }
+    },
+    "VPCVPCGW99B986DC": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        },
+        "InternetGatewayId": {
+          "Ref": "VPCIGWB7E252D3"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/VPC/VPCGW"
+      }
+    },
+    "mqttsgFD64F92C": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "IOT-MQTT/mqtt-sg",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "allow access to MQTT protocol on TLS",
+            "FromPort": 0,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "allow access to MQTT protocol on TLS",
+            "FromPort": 0,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/mqtt-sg/Resource"
+      }
+    },
+    "MQTTInstanceInstanceProfileBEE3ECB4": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": ["LabRole"]
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/MQTTInstance/InstanceProfile"
+      }
+    },
+    "MQTTInstance1384A6FE": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "IamInstanceProfile": {
+          "Ref": "MQTTInstanceInstanceProfileBEE3ECB4"
+        },
+        "ImageId": {
+          "Fn::FindInMap": [
+            "MQTTInstanceAmiMapC6A9C4ED",
+            {
+              "Ref": "AWS::Region"
+            },
+            "ami"
+          ]
+        },
+        "InstanceType": "t2.micro",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": ["mqttsgFD64F92C", "GroupId"]
+          }
+        ],
+        "SubnetId": {
+          "Ref": "VPCpublicSubnet1Subnet325F50B2"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IOT-MQTT/MQTTInstance"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash\nsudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa\nsudo apt update\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nsudo apt install -y mosquitto mosquitto-clients\nsudo apt clean"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/MQTTInstance/Resource"
+      }
+    },
+    "CDKMetadata": {
+      "Type": "AWS::CDK::Metadata",
+      "Properties": {
+        "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WQPW/CQAyGfwv75UrpxIgyIIZKUYJYK+cwxSWxozufUBTlv5OQ0LSTXz/+euWNfV/b9QruIXHnW1JRabtCwd3MgL46dBvbnRpn0gufstRksazIFbFk1JEtKpeoeISywoUvbBeCOAIl4d/mURxY0Q+de1C8QzufmbOdDkauNbKaAl30pO3eS2yeB/6BAwcFdvPKSfeGoLZdLpOjV3yVMy8XqrDvTY5Bop+GP6FpiL+fA39wKnym0Xxvslavwm8fdjt8bvUTiBIfWalGm0/xAfpDNohTAQAA"
+      },
+      "Metadata": {
+        "aws:cdk:path": "IOT-MQTT/CDKMetadata/Default"
+      },
+      "Condition": "CDKMetadataAvailable"
+    }
+  },
+  "Mappings": {
+    "MQTTInstanceAmiMapC6A9C4ED": {
+      "us-east-1": {
+        "ami": "ami-04505e74c0741db8d"
+      }
+    }
+  },
+  "Conditions": {
+    "CDKMetadataAvailable": {
+      "Fn::Or": [
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "af-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ca-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-northwest-1"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-3"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "me-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "sa-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-2"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-2"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
