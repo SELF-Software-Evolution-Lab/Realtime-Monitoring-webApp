@@ -13,7 +13,7 @@ UNITS = {
 }
 
 
-def getCoordinates(city: str, state: str, country: str) -> Tuple[float, float]:
+def get_coordinates(city: str, state: str, country: str) -> Tuple[float, float]:
     '''
     Servicio para conseguir las coordenadas de un lugar (nombre) usando GeoCode.xyz.
     '''
@@ -83,7 +83,7 @@ def get_or_create_location(city, state, country):
     loc, created = Location.objects.get_or_create(
         city=cityO, state=stateO, country=countryO)
     if created:
-        lat, lng = getCoordinates(city, state, country)
+        lat, lng = get_coordinates(city, state, country)
         loc.lat = lat
         loc.lng = lng
         loc.save()
@@ -102,7 +102,7 @@ def get_or_create_location_only_city(city):
     loc, created = Location.objects.get_or_create(
         city=cityO, state=stateO, country=countryO)
     if loc.lat == None:
-        lat, lng = getCoordinates(city, "", "Colombia")
+        lat, lng = get_coordinates(city, "", "Colombia")
         loc.lat = lat
         loc.lng = lng
         loc.save()

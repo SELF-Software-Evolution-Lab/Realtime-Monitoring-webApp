@@ -27,7 +27,7 @@ def index(request):
     return render(request, 'home.html')
 
 
-# @login_required
+@login_required
 @csrf_exempt
 def realtime_data(request):
     if request.method == 'POST':

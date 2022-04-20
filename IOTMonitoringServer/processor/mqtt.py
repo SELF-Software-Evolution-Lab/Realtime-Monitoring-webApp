@@ -4,23 +4,7 @@ import json
 import os
 import ssl
 import paho.mqtt.client as mqtt
-
-# Dirección del bróker MQTT
-MQTT_HOST = "44.201.18.140"
-
-# Puerto del bróker MQTT
-MQTT_PORT = 8082
-
-# Credenciales para conexión con el bróker MQTT
-MQTT_USER = "admin"
-MQTT_PASSWORD = "admin1234"
-
-# Tópico a suscribir. '#' se refiere a todos los tópicos.
-TOPIC = "#"
-
-# Ubicación del archivo de certificado para conexión TLS con el bróker MQTT
-CA_CRT_FILE = "ssl/ca.crt"
-CA_CRT_PATH = os.path.join(os.path.dirname(__file__), CA_CRT_FILE)
+from django.conf import settings
 
 # TODO Implementar logs
 
@@ -68,8 +52,8 @@ def on_message(client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
 
 
 def on_connect(client, userdata, flags, rc):
-    print("Suscribiendo al tópico: " + TOPIC)
-    client.subscribe(TOPIC)
+    print("Suscribiendo al tópico: " + settings.TOPIC)
+    client.subscribe(settings.TOPIC)
 
 
 def on_disconnect(client: mqtt.Client, userdata, rc):
@@ -82,16 +66,16 @@ def on_disconnect(client: mqtt.Client, userdata, rc):
     client.reconnect()
 
 
-print("Iniciando cliente MQTT...")
+print("Iniciando cliente MQTT...", settings.MQTT_HOST, settings.MQTT_PORT)
 try:
-    client = mqtt.Client(MQTT_USER)
+    client = mqtt.Client(settings.MQTT_USER)
     client.on_connect = on_connect
     client.on_message = on_message
     client.on_disconnect = on_disconnect
     # Descomentar para usar TLS
     # client.tls_set(ca_certs=CA_CRT_PATH,
     #                tls_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_NONE)
-    client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
-    client.connect(MQTT_HOST, MQTT_PORT)
+    client.username_pw_set(settings.MQTT_USER, settings.MQTT_PASSWORD)
+    client.connect(settings.MQTT_HOST, settings.MQTT_PORT)
 except Exception as e:
     print('Ocurrió un error al conectar con el bróker MQTT:', e)

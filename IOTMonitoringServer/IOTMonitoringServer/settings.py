@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crispy_forms',
     'processor',
+    'viewer'
 ]
 
 MIDDLEWARE = [
@@ -90,11 +91,11 @@ WSGI_APPLICATION = 'IOTMonitoringServer.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "iot_data",
-        "USER": "dbadmin",
-        "PASSWORD": "uniandesIOT1234*",
-        "HOST": "3.235.54.132",
-        "PORT": "",
+        "NAME": "iot_data",  # Nombre de la base de datos
+        "USER": "dbadmin",  # Nombre de usuario
+        "PASSWORD": "uniandesIOT1234*",  # Contraseña
+        "HOST": "3.235.54.132",  # Dirección IP de la base de datos
+        "PORT": "",  # Puerto de la base de datos
     }
 }
 
@@ -151,3 +152,20 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = '/login/'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# Dirección del bróker MQTT
+MQTT_HOST = "44.201.18.140"
+
+# Puerto del bróker MQTT
+MQTT_PORT = 8082
+
+# Credenciales para conexión con el bróker MQTT
+MQTT_USER = "admin"
+MQTT_PASSWORD = "admin1234"
+
+# Tópico a suscribir. '#' se refiere a todos los tópicos.
+TOPIC = "#"
+
+# Ubicación del archivo de certificado para conexión TLS con el bróker MQTT
+CA_CRT_FILE = "ssl/ca.crt"
+CA_CRT_PATH = os.path.join(os.path.dirname(__file__), CA_CRT_FILE)
