@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'crispy_forms',
+    'monitor',
     'processor',
     'viewer'
 ]
@@ -94,7 +95,7 @@ DATABASES = {
         "NAME": "iot_data",  # Nombre de la base de datos
         "USER": "dbadmin",  # Nombre de usuario
         "PASSWORD": "uniandesIOT1234*",  # Contraseña
-        "HOST": "ip.maquina.db",  # Dirección IP de la base de datos
+        "HOST": "44.203.21.177",  # Dirección IP de la base de datos
         "PORT": "",  # Puerto de la base de datos
     }
 }
