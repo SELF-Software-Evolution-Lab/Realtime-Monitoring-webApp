@@ -72,10 +72,13 @@ try:
     client.on_connect = on_connect
     client.on_message = on_message
     client.on_disconnect = on_disconnect
-    # Descomentar para usar TLS
-    # client.tls_set(ca_certs=CA_CRT_PATH,
-    #                tls_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_NONE)
+
+    if settings.MQTT_USE_TLS:
+        client.tls_set(ca_certs=settings.CA_CRT_PATH,
+                       tls_version=ssl.PROTOCOL_TLSv1_2, cert_reqs=ssl.CERT_NONE)
+
     client.username_pw_set(settings.MQTT_USER, settings.MQTT_PASSWORD)
     client.connect(settings.MQTT_HOST, settings.MQTT_PORT)
+
 except Exception as e:
     print('Ocurrió un error al conectar con el bróker MQTT:', e)

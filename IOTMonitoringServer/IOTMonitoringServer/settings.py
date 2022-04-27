@@ -95,7 +95,7 @@ DATABASES = {
         "NAME": "iot_data",  # Nombre de la base de datos
         "USER": "dbadmin",  # Nombre de usuario
         "PASSWORD": "uniandesIOT1234*",  # Contraseña
-        "HOST": "44.203.21.177",  # Dirección IP de la base de datos
+        "HOST": "ip.maquina.db",  # Dirección IP de la base de datos
         "PORT": "",  # Puerto de la base de datos
     }
 }
@@ -160,12 +160,19 @@ MQTT_HOST = "ip.maquina.mqtt"
 # Puerto del bróker MQTT
 MQTT_PORT = 8082
 
-# Credenciales para conexión con el bróker MQTT
+# Credenciales para el usuario suscriptor del bróker MQTT
 MQTT_USER = "admin"
 MQTT_PASSWORD = "admin"
 
+# Credenciales para el usuario publicador del bróker MQTT
+MQTT_USER_PUB = "admin2"
+MQTT_PASSWORD_PUB = "admin2"
+
 # Tópico a suscribir. '#' se refiere a todos los tópicos.
 TOPIC = "#"
+
+# Opción para habilitar la transmisión de mensajes segura
+MQTT_USE_TLS = False
 
 # Ubicación del archivo de certificado para conexión TLS con el bróker MQTT
 CA_CRT_FILE = "ssl/ca.crt"
