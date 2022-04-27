@@ -15,6 +15,9 @@ def analyze_data():
     # Consulta todos los datos de la última hora, los agrupa por estación y variable
     # Compara el promedio con los valores límite que están en la base de datos para esa variable.
     # Si el promedio se excede de los límites, se envia un mensaje de alerta.
+
+    print("Calculando alertas...")
+
     data = Data.objects.filter(
         base_time__gte=datetime.now() - timedelta(minutes=10))
     aggregation = data.annotate(check_value=Avg('avg_value')) \
@@ -101,6 +104,7 @@ def start_cron():
     '''
     print("Iniciando cron...")
     schedule.every(1).minutes.do(analyze_data)
+    print("Servicio de control iniciado")
     while 1:
         schedule.run_pending()
         time.sleep(1)
