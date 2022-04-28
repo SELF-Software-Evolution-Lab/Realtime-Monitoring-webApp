@@ -339,7 +339,7 @@
           }
         ],
         "UserData": {
-          "Fn::Base64": "#!/bin/bash\nsudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa\nsudo apt update\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nsudo apt install -y mosquitto mosquitto-clients\nsudo apt clean\necho 'port 8082' | sudo tee -a /etc/mosquitto/mosquitto.conf\nsudo touch /etc/mosquitto/acl.txt\necho 'pattern readwrite +/+/+/%u' | sudo tee -a /etc/mosquitto/acl.txt\necho 'user admin' | sudo tee -a /etc/mosquitto/acl.txt\necho 'topic readwrite #' | sudo tee -a /etc/mosquitto/acl.txt\necho 'user admin2' | sudo tee -a /etc/mosquitto/acl.txt\necho 'topic readwrite #' | sudo tee -a /etc/mosquitto/acl.txt\necho 'acl_file /etc/mosquitto/acl.txt' | sudo tee -a /etc/mosquitto/mosquitto.conf\nsudo touch /etc/mosquitto/users.txt\necho 'admin:admin' | sudo tee -a /etc/mosquitto/users.txt\necho 'admin2:admin2' | sudo tee -a /etc/mosquitto/users.txt\necho 'allow_anonymous false' | sudo tee -a /etc/mosquitto/mosquitto.conf\necho 'password_file /etc/mosquitto/users.txt' | sudo tee -a /etc/mosquitto/mosquitto.conf\nsudo systemctl restart mosquitto.service"
+          "Fn::Base64": "#!/bin/bash\nsudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa\nsudo apt update\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nsudo apt install -y mosquitto mosquitto-clients\nsudo apt clean\necho 'port 8082' | sudo tee -a /etc/mosquitto/mosquitto.conf\nsudo touch /etc/mosquitto/acl.txt\necho 'pattern readwrite +/+/+/%u/in' | sudo tee -a /etc/mosquitto/acl.txt\necho 'pattern readwrite +/+/+/%u/out' | sudo tee -a /etc/mosquitto/acl.txt\necho 'user admin' | sudo tee -a /etc/mosquitto/acl.txt\necho 'topic readwrite #' | sudo tee -a /etc/mosquitto/acl.txt\necho 'user admin2' | sudo tee -a /etc/mosquitto/acl.txt\necho 'topic readwrite #' | sudo tee -a /etc/mosquitto/acl.txt\necho 'acl_file /etc/mosquitto/acl.txt' | sudo tee -a /etc/mosquitto/mosquitto.conf\nsudo touch /etc/mosquitto/users.txt\necho 'admin:admin' | sudo tee -a /etc/mosquitto/users.txt\necho 'admin2:admin2' | sudo tee -a /etc/mosquitto/users.txt\necho 'allow_anonymous false' | sudo tee -a /etc/mosquitto/mosquitto.conf\necho 'password_file /etc/mosquitto/users.txt' | sudo tee -a /etc/mosquitto/mosquitto.conf\nsudo systemctl restart mosquitto.service"
         }
       },
       "Metadata": {
@@ -394,7 +394,7 @@
           }
         ],
         "UserData": {
-          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms"
+          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms\nyes | sudo python3 -m pip install schedule"
         }
       },
       "Metadata": {
@@ -449,7 +449,7 @@
           }
         ],
         "UserData": {
-          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms"
+          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms\nyes | sudo python3 -m pip install schedule"
         }
       },
       "Metadata": {
@@ -504,7 +504,7 @@
           }
         ],
         "UserData": {
-          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms"
+          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms\nyes | sudo python3 -m pip install schedule"
         }
       },
       "Metadata": {
