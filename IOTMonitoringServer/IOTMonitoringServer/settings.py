@@ -168,8 +168,9 @@ MQTT_PASSWORD = "admin"
 MQTT_USER_PUB = "admin2"
 MQTT_PASSWORD_PUB = "admin2"
 
-# Tópico a suscribir. '#' se refiere a todos los tópicos.
-TOPIC = "#"
+# Tópico a suscribir. "+/+/+/+/out" se suscribe únicamente a los
+# tópicos con forma <país>/<estado>/<ciudad>/<usuario>/out.
+TOPIC = "+/+/+/+/out"
 
 # Opción para habilitar la transmisión de mensajes segura
 MQTT_USE_TLS = False
