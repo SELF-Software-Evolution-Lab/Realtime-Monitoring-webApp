@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
-from processor.models import Measurement
+from receiver.models import Measurement
 from . import filters, utils
 
 '''

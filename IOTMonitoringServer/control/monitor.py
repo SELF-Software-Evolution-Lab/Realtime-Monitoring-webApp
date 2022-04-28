@@ -2,7 +2,7 @@ from argparse import ArgumentError
 import ssl
 from django.db.models import Avg
 from datetime import timedelta, datetime
-from processor.models import Data, Measurement
+from receiver.models import Data, Measurement
 import paho.mqtt.client as mqtt
 import schedule
 import time
@@ -32,7 +32,7 @@ def analyze_data():
                 'station__location__city__name',
                 'station__location__state__name',
                 'station__location__country__name')
-
+    alerts = 0
     for item in aggregation:
         alert = False
 
@@ -53,8 +53,10 @@ def analyze_data():
             topic = '{}/{}/{}/{}/messages'.format(country, state, city, user)
             print(datetime.now(), "Sending alert to {} {}".format(topic, variable))
             client.publish(topic, message)
+            alerts += 1
 
-    print("Alertando", len(aggregation), "dispositivos")
+    print(len(aggregation), "dispositivos revisados")
+    print(alerts, "alertas enviadas")
 
 
 def on_connect(client, userdata, flags, rc):

@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from monitor import monitor
+from control import monitor
 
 
 class Command(BaseCommand):

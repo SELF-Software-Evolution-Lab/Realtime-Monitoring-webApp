@@ -1,7 +1,7 @@
 from datetime import datetime
 import traceback
 from django.contrib.auth.models import User
-from processor.models import Measurement, Station, Data, Location, City, State, Country
+from receiver.models import Measurement, Station, Data, Location, City, State, Country
 from django.db.models import Avg, Max, Min, Sum
 import dateutil.relativedelta
 

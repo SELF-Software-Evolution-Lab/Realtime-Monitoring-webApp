@@ -6,22 +6,22 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("processor", "0001_initial"),
+        ("receiver", "0001_initial"),
     ]
 
     operations = [
         # Crea la hipertabla de timescale con chunks de 3 días.
         migrations.RunSQL(
-            "SELECT create_hypertable('\"processor_data\"', 'time', chunk_time_interval=>259200000000);"
+            "SELECT create_hypertable('\"receiver_data\"', 'time', chunk_time_interval=>259200000000);"
         ),
         # Configura la compresión para estaciones y variables. Son llaves foráneas de la tabla principal.
         migrations.RunSQL(
-            "ALTER TABLE \"processor_data\" \
+            "ALTER TABLE \"receiver_data\" \
                 SET (timescaledb.compress, \
                 timescaledb.compress_segmentby = 'station_id, measurement_id, base_time');"
         ),
         # Comprime los datos cada 7 días.
         migrations.RunSQL(
-            "SELECT add_compression_policy('\"processor_data\"', 604800000000);"
+            "SELECT add_compression_policy('\"receiver_data\"', 604800000000);"
         ),
     ]

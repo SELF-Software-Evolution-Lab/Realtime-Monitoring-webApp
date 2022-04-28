@@ -3,7 +3,7 @@ from django.utils import timezone
 from typing import Tuple
 from django.contrib.auth.models import User
 import requests
-from processor.models import Location, Station, Measurement, Data, City, State, Country
+from receiver.models import Location, Station, Measurement, Data, City, State, Country
 
 UNITS = {
     "temperatura": "°C",

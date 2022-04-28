@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from processor.models import City, State, Country, Location, Station, Measurement, Data
+from receiver.models import City, State, Country, Location, Station, Measurement, Data
 
 admin.site.register(City)
 admin.site.register(State)
