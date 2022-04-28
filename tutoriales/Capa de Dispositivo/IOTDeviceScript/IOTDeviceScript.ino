@@ -40,23 +40,23 @@ PubSubClient client(net);
 
 // WiFi
 // Nombre de la red WiFi
-const char ssid[] = "CityU-WIFI-24G-T3-P11";
+const char ssid[] = "RedWiFi"; // TODO cambiar por el nombre de la red WiFi
 // Contraseña de la red WiFi
-const char pass[] = "CityU2018*";
+const char pass[] = "ClaveWiFi"; // TODO cambiar por la contraseña de la red WiFi
 
 //Conexión a Mosquitto
-#define USER "user1" // TODO Reemplace UsuarioMQTT por un usuario (no administrador) que haya creado en la configuración del bróker de MQTT.
-const char MQTT_HOST[] = "44.202.182.221"; // TODO Reemplace ip.maquina.mqtt por la IP del bróker MQTT que usted desplegó. Ej: 192.168.0.1
+#define USER "UsuarioMQTT" // TODO Reemplace UsuarioMQTT por un usuario (no administrador) que haya creado en la configuración del bróker de MQTT.
+const char MQTT_HOST[] = "ip.maquina.mqtt"; // TODO Reemplace ip.maquina.mqtt por la IP del bróker MQTT que usted desplegó. Ej: 192.168.0.1
 const int MQTT_PORT = 8082;
 const char MQTT_USER[] = USER;
 //Contraseña de MQTT
-const char MQTT_PASS[] = "user1"; // TODO Reemplace ContrasenaMQTT por la contraseña correpondiente al usuario especificado.
+const char MQTT_PASS[] = "ContrasenaMQTT"; // TODO Reemplace ContrasenaMQTT por la contraseña correpondiente al usuario especificado.
 
 //Tópico al que se recibirán los datos
-// El tópico de publicación debe tener estructura: <país>/<estado>/<ciudad>/<usuario>
-const char MQTT_TOPIC_PUB[] = "colombia/cundinamarca/bogota/" USER;
-// El tópico de suscripción debe tener estructura: <país>/<estado>/<ciudad>/<usuario>/messages
-const char MQTT_TOPIC_SUB[] = "colombia/cundinamarca/bogota/" USER "/messages";
+// El tópico de publicación debe tener estructura: <país>/<estado>/<ciudad>/<usuario>/out
+const char MQTT_TOPIC_PUB[] = "pais/estado/ciudad/" USER "/out"; //TODO Reemplace MQTT_TOPIC_PUB por el tópico de publicación que le corresponde.
+// El tópico de suscripción debe tener estructura: <país>/<estado>/<ciudad>/<usuario>/in
+const char MQTT_TOPIC_SUB[] = "pais/estado/ciudad/" USER "/in"; //TODO Reemplace MQTT_TOPIC_SUB por el tópico de suscripción que le corresponde.
 
 // Declaración de variables globales
 

@@ -88,25 +88,6 @@ def get_or_create_location(city, state, country):
     return loc
 
 
-def get_or_create_location_only_city(city):
-    '''
-    Intenta traer la locación con sólo nombre de ciudad {city}.
-    Si no existe, calcula las coordenadas de esa ubicación, lo crea y lo retorna.
-    '''
-    cityO, created = City.objects.get_or_create(name=city)
-    stateO, created = State.objects.get_or_create(name="")
-    countryO, created = Country.objects.get_or_create(name="Colombia")
-    loc, created = Location.objects.get_or_create(
-        city=cityO, state=stateO, country=countryO)
-    if loc.lat == None:
-        lat, lng = get_coordinates(city, "", "Colombia")
-        loc.lat = lat
-        loc.lng = lng
-        loc.save()
-
-    return(loc)
-
-
 def get_or_create_station(user, location):
     '''
     Intenta traer la estación con usuario y locación {user, location}. Si no existe la crea y la retorna.
@@ -114,14 +95,6 @@ def get_or_create_station(user, location):
     station, created = Station.objects.get_or_create(
         user=user, location=location)
     return(station)
-
-
-def get_station(user, location):
-    '''
-    Traer la estación con usuario y locación {user, location}.
-    '''
-    station = Station.objects.get(user=user, location=location)
-    return station
 
 
 def get_or_create_measurement(name, unit):
@@ -139,6 +112,12 @@ def create_data(
     measure: Measurement,
     time: datetime = datetime.now(),
 ):
+    '''
+    Crea un nuevo dato con valor {value}, estación {station} y variable {measure}.
+    Hace las operaciones necesarias para insertarlo en la base de datos con el patrón Blob.
+    Calcula promedio, mínimo y máximo de los datos anteriores.
+    '''
+
     base_time = datetime(time.year, time.month, time.day,
                          time.hour, tzinfo=time.tzinfo)
     ts = int(base_time.timestamp() * 1000000)
@@ -158,14 +137,11 @@ def create_data(
         values = data.values
         times = data.times
 
-    print("Secs: ", secs)
-
     values.append(value)
     times.append(secs)
 
     length = len(times)
 
-    # Pueden quedar threads abiertos y bloquean memoria/cpu. Probar consultas sin estos valores
     data.max_value = max(values) if length > 0 else 0
     data.min_value = min(values) if length > 0 else 0
     data.avg_value = sum(values) / length if length > 0 else 0
