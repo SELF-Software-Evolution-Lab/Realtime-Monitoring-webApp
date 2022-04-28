@@ -1,12 +1,13 @@
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import login
-from .forms import NewUserForm
+from .forms import MeasurementForm, NewUserForm, NewVariableForm
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from processor.models import Measurement
 from . import filters, utils
 
 '''
@@ -18,6 +19,7 @@ from . import filters, utils
     5. Mapa histórico (Todos)
     6. Descarga de datos (Todos)
     7. Usuarios (Admin)
+    8. Variables (Admin)
 '''
 from django.http import HttpResponse, HttpResponsePermanentRedirect, HttpResponseRedirect, JsonResponse
 
@@ -64,7 +66,7 @@ def download_data(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def users(request):
-    users = User.objects.all()
+    users = User.objects.all().order_by('id')
     return render(request, 'users/user_list.html', {'users': list(users)})
 
 
@@ -92,3 +94,38 @@ def register_request(request):
             request, "Registro fallido. Información inválida.")
     form = NewUserForm()
     return render(request=request, template_name="users/user_register.html", context={"register_form": form})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def variables(request):
+    variables = Measurement.objects.all().order_by('id')
+    return render(request, 'variables/variable_list.html', {'variables': list(variables)})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def edit_variable(request, id):
+    variable = get_object_or_404(Measurement, pk=id)
+    if request.method == "POST":
+        form = MeasurementForm(request.POST or None, instance=variable)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Edición exitosa.")
+            return HttpResponsePermanentRedirect("/variables/")
+        messages.error(
+            request, "Edición fallida. Información inválida.")
+    form = MeasurementForm(request.POST or None, instance=variable)
+    return render(request=request, template_name="variables/variable_edit.html", context={"register_variable_form": form, "variable": variable})
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def register_variable_request(request):
+    if request.method == "POST":
+        form = NewVariableForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Registro exitoso.")
+            return HttpResponsePermanentRedirect("/variables/")
+        messages.error(
+            request, "Registro fallido. Información inválida.")
+    form = NewVariableForm()
+    return render(request=request, template_name="variables/variable_register.html", context={"register_variable_form": form})

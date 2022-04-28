@@ -10,5 +10,9 @@ urlpatterns = [
     path('historic/', views.download_data, name='historical'),
     path('users/', views.users, name='users'),
     path('users/delete/<username>', views.delete_user, name='delete_users'),
-    path("users/register/", views.register_request, name="register")
+    path("users/register/", views.register_request, name="register"),
+    path('variables/', views.variables, name='variables'),
+    path("variables/register/", views.register_variable_request,
+         name="register_variable"),
+    path('variables/<id>/', views.edit_variable, name='edit_variable'),
 ]
