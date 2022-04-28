@@ -40,7 +40,7 @@ def get_units(variable: str) -> str:
     return UNITS.get(variable, '')
 
 
-def get_topic_data(topic: str) -> Tuple[str, str, str, str, str]:
+def get_topic_data(topic: str) -> Tuple[str, str, str, str]:
     """
     Obtiene los datos de un tópico.
     """
@@ -50,13 +50,10 @@ def get_topic_data(topic: str) -> Tuple[str, str, str, str, str]:
         state = parts[1]
         city = parts[2]
         user = parts[3]
-        if len(parts) == 5:
-            message = parts[4]
-        elif len(parts) == 4:
-            message = None
-        else:
+        topic_type = parts[4]
+        if len(parts) > 5:
             raise Exception("Tópico incorrecto")
-        return country, state, city, user, message
+        return country, state, city, user
     except Exception as e:
         raise Exception('Tópico no válido: {}'.format(topic))
 

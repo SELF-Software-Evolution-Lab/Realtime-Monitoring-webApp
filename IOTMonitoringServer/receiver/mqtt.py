@@ -28,11 +28,8 @@ def on_message(client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         payload = message.payload.decode("utf-8")
         print("payload: " + payload)
         payloadJson = json.loads(payload)
-        country, state, city, user, message = utils.get_topic_data(
+        country, state, city, user = utils.get_topic_data(
             message.topic)
-
-        if message is not None:
-            return
 
         user_obj = utils.get_user(user)
         location_obj = utils.get_or_create_location(city, state, country)
