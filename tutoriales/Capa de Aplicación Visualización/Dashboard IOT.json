@@ -1,0 +1,760 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "Bryt-t_7k"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 7,
+        "y": 0
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "time_series",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "WITH\n  constantes (temperatura, humedad) AS (values(1, 2)),\n  time_p AS (SELECT d.time, t.idx as index, t.time + cast(extract(epoch from d.base_time) as integer) as tiempo FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.times) WITH ORDINALITY AS t(time, idx) ON TRUE WHERE d.measurement_id = c.temperatura) ,\n  value_p AS (SELECT d.time, v.idx as index, v.value as valor FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.values) WITH ORDINALITY AS v(value, idx) ON TRUE WHERE d.measurement_id = c.temperatura)\nSELECT t.tiempo as time, v.valor as temperatura FROM time_p t LEFT JOIN value_p v on (t.time = v.time AND t.index = v.index);",
+          "refId": "D",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "time_series",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "WITH\n  constantes (temperatura, humedad) AS (values(1, 2)),\n  time_p AS (SELECT d.time, t.idx as index, t.time + cast(extract(epoch from d.base_time) as integer) as tiempo FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.times) WITH ORDINALITY AS t(time, idx) ON TRUE WHERE d.measurement_id = c.humedad) ,\n  value_p AS (SELECT d.time, v.idx as index, v.value as valor FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.values) WITH ORDINALITY AS v(value, idx) ON TRUE WHERE d.measurement_id = c.humedad)\nSELECT t.tiempo as time, v.valor as humedad FROM time_p t LEFT JOIN value_p v on (t.time = v.time AND t.index = v.index);",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Temperatura y humedad",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "Bryt-t_7k"
+      },
+      "description": "Gráfico gauge que mide respecto a un máximo y mínimo histórico el último valor recibido de humedad ",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Humedad",
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 40
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 8,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true,
+        "text": {
+          "titleSize": 25
+        }
+      },
+      "pluginVersion": "8.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "table",
+          "group": [],
+          "hide": true,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  avg_value as value\nFROM processor_data\nWHERE\n  measurement_id = 2 AND\n  $__timeFilter(base_time)\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "WITH\n  constantes (temperatura, humedad) AS (values(1, 2)),\n  time_p AS (SELECT d.time, t.idx as index, t.time + cast(extract(epoch from d.base_time) as integer) as tiempo FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.times) WITH ORDINALITY AS t(time, idx) ON TRUE WHERE d.measurement_id = c.humedad) ,\n  value_p AS (SELECT d.time, v.idx as index, v.value as valor FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.values) WITH ORDINALITY AS v(value, idx) ON TRUE WHERE d.measurement_id = c.humedad)\nSELECT v.valor as humedad FROM time_p t LEFT JOIN value_p v on (t.time = v.time AND t.index = v.index);",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Humedad Actual",
+      "transparent": true,
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "Bryt-t_7k"
+      },
+      "description": "Gráfico gauge que mide respecto a un máximo y mínimo histórico el último valor recibido de temperatura",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 50,
+          "min": -10,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 37
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 10,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "8.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "WITH\n  constantes (temperatura, humedad) AS (values(1, 2)),\n  time_p AS (SELECT d.time, t.idx as index, t.time + cast(extract(epoch from d.base_time) as integer) as tiempo FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.times) WITH ORDINALITY AS t(time, idx) ON TRUE WHERE d.measurement_id = c.temperatura) ,\n  value_p AS (SELECT d.time, v.idx as index, v.value as valor FROM processor_data as d, constantes as c LEFT JOIN UNNEST(d.values) WITH ORDINALITY AS v(value, idx) ON TRUE WHERE d.measurement_id = c.temperatura)\nSELECT v.valor as temperatura FROM time_p t LEFT JOIN value_p v on (t.time = v.time AND t.index = v.index);",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Temperatura actual",
+      "transparent": true,
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "Bryt-t_7k"
+      },
+      "description": "Mapa que permite visualizar la información de los nodos y la humedad\nTamaño representa la cantidad de nodos tomando información en ese punto\nColor representa el valor de la humedad respecto a los máximos y mínimos definidos",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "light-green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 65
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 13,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Layer 0",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "value",
+                  "fixed": "dark-green"
+                },
+                "opacity": 0.4,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "field": "quantity",
+                  "fixed": 5,
+                  "max": 15,
+                  "min": 5
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "field": "value",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 15,
+                  "offsetY": 15,
+                  "textAlign": "left",
+                  "textBaseline": "bottom"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "Layer 1",
+            "type": "markers"
+          }
+        ],
+        "view": {
+          "id": "coords",
+          "lat": 4.60971,
+          "lon": -74.08175,
+          "zoom": 6
+        }
+      },
+      "pluginVersion": "8.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT sta.location_id, sta.quantity, sta.value, location.lat as latitude, location.lng as longitude from ( SELECT station.location_id, COUNT(*) as quantity, AVG(data.value) as value from (SELECT station_id, AVG(avg_value) as value from processor_data WHERE measurement_id = 2 group by station_id) data RIGHT JOIN processor_station station on (data.station_id = station.id) group by station.location_id) sta RIGHT JOIN processor_location location on (sta.location_id = location.id);",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Humedad",
+      "transparent": true,
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "Bryt-t_7k"
+      },
+      "description": "Mapa que permite visualizar la información de los nodos y la temperatura\nTamaño representa la cantidad de nodos tomando información en ese punto\nColor representa el valor de la temperatura respecto a los máximos y mínimos definidos",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "light-green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 28
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Layer 0",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "value",
+                  "fixed": "dark-green"
+                },
+                "opacity": 0.4,
+                "rotation": {
+                  "fixed": -5,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "field": "quantity",
+                  "fixed": 5,
+                  "max": 20,
+                  "min": 5
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "field": "value",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 15,
+                  "offsetY": 15,
+                  "textAlign": "left",
+                  "textBaseline": "top"
+                }
+              }
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "Layer 1",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "view": {
+          "id": "coords",
+          "lat": 4.60971,
+          "lon": -74.08175,
+          "zoom": 6
+        }
+      },
+      "pluginVersion": "8.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "time_series",
+          "group": [],
+          "hide": true,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  count(*) as value,\n  lat as latitude,\n  lng as longitude\nFROM processor_location\nGROUP BY location\nORDER BY 1",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "Bryt-t_7k"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT sta.location_id, sta.quantity, sta.value, location.lat as latitude, location.lng as longitude \nfrom \n( SELECT station.location_id, COUNT(*) as quantity, AVG(data.value) as value \nfrom (SELECT station_id, AVG(avg_value) as value from processor_data \nWHERE measurement_id = 1 group by station_id) data \nRIGHT JOIN processor_station station on (data.station_id = station.id) \ngroup by station.location_id) sta RIGHT JOIN processor_location location on (sta.location_id = location.id);",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "min_value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "processor_data",
+          "timeColumn": "base_time",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Temperatura",
+      "transparent": true,
+      "type": "geomap"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2022-04-28T17:53:11.968Z",
+    "to": "2022-04-28T18:05:37.000Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Iot Datos Historicos",
+  "uid": "8FYAsxBnk",
+  "version": 14,
+  "weekStart": ""
+}
