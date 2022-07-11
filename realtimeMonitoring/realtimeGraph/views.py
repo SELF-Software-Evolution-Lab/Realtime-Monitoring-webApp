@@ -673,3 +673,54 @@ Filtro para formatear datos en los templates
 @ register.filter
 def add_str(str1, str2):
     return str1 + str2
+
+
+def get_environment(request, **kwargs):
+    # Instancia de objeto de respuesta
+    data_result = {}
+
+    # Consulta todos los realtimeGraph_objects
+    measurements = Measurement.objects.all()
+    locations = Location.objects.all()
+    stations = Station.objects.all()
+    users = User.objects.all()
+    roles = Role.objects.all()
+    states = State.objects.all()
+    countries = Country.objects.all()
+    cities = City.objects.all()
+
+    # Obteniendo el type of measure
+    measure = ''
+    station = ''
+    try:
+        measure = str(request.GET.get("measure", None))
+    except:
+        measure = None
+
+    try:
+        station = str(request.GET.get("station", None))
+    except:
+        station = None
+
+    if measure == None and station == None:
+        measure = 'Humedad'
+        station = 1
+    elif station == None:
+        station = 1
+    elif measure == None:
+        measure = 'Humedad'
+
+    stationsSelect = Station.objects.filter(id=station)
+    measureSelect = Measurement.objects.filter(name=measure)
+    """
+    locationSelect = Location.objects.filter(id=stationsSelect.location.id)
+    userSelect = User.objects.filter(id=stationsSelect.user.id)
+    roleSelect = Role.objects.filter(id=userSelect.role.id)
+    stateSelect = State.objects.filter(id=locationSelect.state.id)
+    countrySelect = Country.objects.filter(id=locationSelect.country.id)
+    citySelect = City.objects.filter(id=locationSelect.city.id)
+    
+    """
+    filterData = Data.objects.filter(
+        station=stationsSelect, measurement=measureSelect)
+    return JsonResponse(filterData)

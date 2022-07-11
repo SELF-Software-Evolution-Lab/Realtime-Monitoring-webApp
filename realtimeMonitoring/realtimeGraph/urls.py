@@ -14,4 +14,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('historical/data',
          download_csv_data, name='historical-data'),
+    path("query/", get_environment, name="get_environment"),
 ]
