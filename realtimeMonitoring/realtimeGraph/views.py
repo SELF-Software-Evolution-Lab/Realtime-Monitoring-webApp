@@ -677,22 +677,6 @@ def add_str(str1, str2):
 
 
 def get_environment(request, **kwargs):
-    # Instancia de objeto de respuesta
-    data_result = {}
-
-    # Consulta todos los realtimeGraph_objects
-    measurements = Measurement.objects.all()
-    locations = Location.objects.all()
-    stations = Station.objects.all()
-    users = User.objects.all()
-    roles = Role.objects.all()
-    states = State.objects.all()
-    countries = Country.objects.all()
-    cities = City.objects.all()
-
-    # Obteniendo el type of measure
-    measure = ''
-    station = ''
     try:
         measure = str(request.GET.get("measure", None))
     except:
@@ -712,27 +696,10 @@ def get_environment(request, **kwargs):
         measure = 'Humedad'
 
     stationsSelect = Station.objects.filter(id=station)
-    print(stationsSelect)
-    logging.debug(stationsSelect)
     measureSelect = Measurement.objects.filter(name=measure)
-    print(measureSelect)
-    """
-    locationSelect = Location.objects.filter(id=stationsSelect.location.id)
-    userSelect = User.objects.filter(id=stationsSelect.user.id)
-    roleSelect = Role.objects.filter(id=userSelect.role.id)
-    stateSelect = State.objects.filter(id=locationSelect.state.id)
-    countrySelect = Country.objects.filter(id=locationSelect.country.id)
-    citySelect = City.objects.filter(id=locationSelect.city.id)
-    
-    """
     filterData = Data.objects.filter(
-        station_id=station, measurement_id=2)[:50]
-
-    raw_data = [[(d.toDict()['time'].timestamp() *
-              1000) // 1, d.toDict()['value']] for d in filterData]
-
-    print(raw_data)
-
+        station_id=stationsSelect[0].id, measurement_id=measureSelect[0].id).order_by('-time')[:50]
+    raw_data = [[d.toDict()['time'], d.toDict()['value']] for d in filterData]
     data = {}
     data["data"] = raw_data
     return JsonResponse(data)
