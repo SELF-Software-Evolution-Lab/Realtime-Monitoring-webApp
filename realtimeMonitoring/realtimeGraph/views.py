@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import json
 from os import name
 import time
@@ -711,7 +712,10 @@ def get_environment(request, **kwargs):
         measure = 'Humedad'
 
     stationsSelect = Station.objects.filter(id=station)
+    print(stationsSelect)
+    logging.debug(stationsSelect)
     measureSelect = Measurement.objects.filter(name=measure)
+    print(measureSelect)
     """
     locationSelect = Location.objects.filter(id=stationsSelect.location.id)
     userSelect = User.objects.filter(id=stationsSelect.user.id)
@@ -722,5 +726,13 @@ def get_environment(request, **kwargs):
     
     """
     filterData = Data.objects.filter(
-        station=stationsSelect, measurement=measureSelect)
-    return JsonResponse(filterData)
+        station_id=station, measurement_id=2)[:50]
+
+    raw_data = [[(d.toDict()['time'].timestamp() *
+              1000) // 1, d.toDict()['value']] for d in filterData]
+
+    print(raw_data)
+
+    data = {}
+    data["data"] = raw_data
+    return JsonResponse(data)
