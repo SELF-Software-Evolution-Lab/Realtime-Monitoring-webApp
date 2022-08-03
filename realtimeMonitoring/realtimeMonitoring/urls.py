@@ -20,7 +20,7 @@ from . import utils
 
 utils.register_users()
 # utils.writeDataCSVFile() No descomentar. Genera el archivo de todos los registros a la fecha. No corre con GUnicorn, se debe correr con python mnage.py runserver. Toma tiempo: para 200k datos tomó aprox. 10 min.
-utils.updateCSVFile()
+# utils.updateCSVFile()
 mqtt.client.loop_start()
 
 urlpatterns = [

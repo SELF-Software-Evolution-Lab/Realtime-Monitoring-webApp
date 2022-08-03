@@ -35,30 +35,26 @@ class DashboardView(TemplateView):
         #return render(request, 'no_data.html')
 
     def get_context_data(self, **kwargs):
+        print("GET /")
         super().get_context_data(**kwargs)
         context = {}
-        print("CONTEXT: getting context data")
         try:
             userParam = self.request.user.username
             cityParam = self.request.GET.get('city', None)
-            print("CONTEXT: getting user and city: ", userParam, cityParam)
             if cityParam == None:
                 user = User.objects.get(login=userParam)
-                print("CONTEXT: getting user db: ", user)
                 stations = Station.objects.filter(user=user)
-                print("CONTEXT: getting stations db: ", stations)
                 station = stations[0] if len(stations) > 0 else None
-                print("CONTEXT: getting first station: ", station)
                 if station != None:
                     cityParam = station.city.name
                 else:
+                    print("GET / OK")
                     return context
-            print("CONTEXT: getting last week data and measurements")
             context["data"], context["measurements"] = self.get_last_week_data(userParam, cityParam)
-            print("CONTEXT: got last week data, now getting city: ", cityParam)
             context["selectedCity"] = City.objects.get(name=cityParam)
         except Exception as e:
             print("Error get_context_data. User: " + userParam, e)
+        print("GET / OK")
         return context
 
     @method_decorator(csrf_exempt)
@@ -85,16 +81,12 @@ class DashboardView(TemplateView):
         try:
             userO = User.objects.get(login=user)
             cityO = City.objects.get(name=city)
-            print("LAST_WEEK: Got user and city:", user, city)
             if userO == None or cityO == None:
                 raise 'No existe el usuario o ciudad indicada'
             stationO = Station.objects.get(user=userO, city=cityO)
-            print("LAST_WEEK: Got station:", user, city, stationO)
             if stationO == None:
                 raise 'No hay datos para esa ubicación'
-            print("LAST_WEEK: Filtering measures of ", stationO)
             datas = Data.objects.filter(station=stationO, created_at__gte=start).order_by('-created_at')[:100]
-            print("LAST_WEEK: Filtered data: len ", len(datas))
             cnt = 0
             while len(datas) <= 0 and cnt < 3:
                 start = start - \
@@ -104,14 +96,10 @@ class DashboardView(TemplateView):
             if len(datas) <= 0:
                 start = datetime.fromtimestamp(0)
                 datas = Data.objects.filter(station=stationO).order_by('-created_at')[:100]
-            print("LAST_WEEK: Filtered data: len ", len(datas))
             measurementsO = set([data.measurement for data in datas])
-            print("LAST_WEEK: Measurements got: ", measurementsO)
             for measure in measurementsO:
-                print("LAST_WEEK: Filtering measure: ", measure)
                 # created_at__gte=start.date() Filtro para último día
                 raw_data = Data.objects.filter(station=stationO, created_at__gte=start, measurement=measure).order_by('-created_at')[:50]
-                print("LAST_WEEK: Raw data: ", len(raw_data))
                 data = [[(d.toDict()['created_at'].timestamp() *
                           1000) // 1, d.toDict()['value']] for d in raw_data]
 
@@ -133,14 +121,14 @@ class DashboardView(TemplateView):
         return result, measurementsO
 
     def post(self, request, *args, **kwargs):
+        print("POST /")
         data = {}
-        if request.user == None or not request.user.is_authenticated:
-            return HttpResponseRedirect("/login/")
+        # if request.user == None or not request.user.is_authenticated:
+        #     return HttpResponseRedirect("/login/")
         try:
             body = json.loads(request.body.decode("utf-8"))
             action = body['action']
-            print('action:', action)
-            userParam = self.request.user.username
+            userParam = self.request.user.username if request.user.is_authenticated else body['user']
             if action == 'get_data':
                 cityName = body['city']
                 data['result'] = self.get_last_week_data(userParam, cityName)[0]
@@ -148,6 +136,7 @@ class DashboardView(TemplateView):
                 data['error'] = 'Ha ocurrido un error'
         except Exception as e:
             data['error'] = str(e)
+        print("POST / OK")
         return JsonResponse(data)
 
 
@@ -205,8 +194,6 @@ def create_data(value, measurement, station):
 def get_last_measure(station, measurement):
     last_measure = Data.objects.filter(
         station=station, measurement=measurement).latest('created_at')
-    print(last_measure.created_at)
-    print(datetime.now())
     return(last_measure.value)
 
 
@@ -215,6 +202,7 @@ class LoginView(TemplateView):
     http_method_names = ['get', 'post']
 
     def post(self, request):
+        print("POST /login")
         form = LoginForm(request.POST or None)
         if request.POST and form.is_valid():
             try:
@@ -228,7 +216,7 @@ class LoginView(TemplateView):
         errors = ''
         for e in form.errors.values():
             errors += str(e[0])
-
+        print("POST /login OK")
         return render(request, 'login.html', {'errors': errors, 'username': form.cleaned_data['username'], 'password': form.cleaned_data['password'], })
 
 
@@ -266,7 +254,6 @@ class HistoricalView(TemplateView):
             if cityParam != None:
                 context['selectedCity'] = City.objects.get(name=cityParam)
                 if context['selectedCity'] != None:
-                    print('found city')
                     datas = Data.objects.filter(station__in=stations)
                     station = Station.objects.get(
                         user=context['selectedUser'],
@@ -332,6 +319,7 @@ class RemaView(TemplateView):
         return render(request, self.template_name, self.get_context_data(**kwargs))
 
     def get_context_data(self, **kwargs):
+        print("GET /rema")
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
@@ -399,6 +387,8 @@ class RemaView(TemplateView):
         context['start'] = startFormatted
         context['end'] = endFormatted
         context['data'] = data
+
+        print("GET /rema OK")
 
         return context
 
