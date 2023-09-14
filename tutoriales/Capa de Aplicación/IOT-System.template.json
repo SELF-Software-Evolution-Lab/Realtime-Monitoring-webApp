@@ -504,7 +504,7 @@
           }
         ],
         "UserData": {
-          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms\nyes | sudo python3 -m pip install schedule"
+          "Fn::Base64": "#!/bin/bash\nsudo apt update\nsudo apt install -y gnupg apt-transport-https lsb-release wget\nsudo apt install -y apt-transport-https wget libpq-dev python3-dev unzip\nyes | sudo apt install libpq-dev python3-dev\nsudo apt clean\nsudo apt -y install pipenv\nsudo apt -y install python3-pip\nyes | sudo python3 -m pip install django\nyes | sudo python3 -m pip install asgiref\nyes | sudo python3 -m pip install paho-mqtt\nyes | sudo python3 -m pip install psycopg2-binary\nyes | sudo python3 -m pip install requests\nyes | sudo python3 -m pip install python-dateutil\nyes | sudo python3 -m pip install django-crispy-forms\nyes | sudo python3 -m pip install crispy-bootstrap4\nyes | sudo python3 -m pip install schedule"
         }
       },
       "Metadata": {
