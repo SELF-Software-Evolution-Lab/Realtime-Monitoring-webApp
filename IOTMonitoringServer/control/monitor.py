@@ -59,6 +59,49 @@ def analyze_data():
     print(alerts, "alertas enviadas")
 
 
+def semana6_validation():
+    # Consulta todos los datos de la última hora, los agrupa por estación y variable
+    # Compara el promedio con los valores límite que están en la base de datos para esa variable.
+    # Si el promedio se excede de los límites, se envia un mensaje de alerta.
+
+    print("Calculando alertas para la semana 6...")
+
+    data = Data.objects.filter(
+        base_time__gte=datetime.now() - timedelta(hours=1))
+    aggregation = data.annotate(check_value=Avg('avg_value')) \
+        .select_related('station', 'measurement') \
+        .select_related('station__user', 'station__location') \
+        .select_related('station__location__city', 'station__location__state',
+                        'station__location__country') \
+        .values('check_value', 'station__user__username',
+                'measurement__name',
+                'measurement__max_value',
+                'measurement__min_value',
+                'station__location__city__name',
+                'station__location__state__name',
+                'station__location__country__name',
+                'values')
+
+    for item in aggregation:
+        measurement = item['measurement__name']
+        country = item['station__location__country__name']
+        state = item['station__location__state__name']
+        city = item['station__location__city__name']
+        user = item['station__user__username']
+        print("Checking {} for {}, {}, {} of {}".format(measurement, country, state, city, user))
+        last_three_values = item['values'][-5:]
+        is_greater_than_all = all(item['check_value'] < num for num in last_three_values)
+        show_avg = round(item['check_value'],2)
+        if (is_greater_than_all):
+            message = "ALERT {} increase".format(measurement)
+            topic = '{}/{}/{}/{}/in'.format(country, state, city, user)
+            print(datetime.now(), "Sending alert to {} {}".format(topic, measurement))
+            client.publish(topic, message)
+        message = "INFO: {}".format(show_avg)
+        topic = '{}/{}/{}/{}/in'.format(country, state, city, user)
+        print(datetime.now(), "Sending info to {} {}".format(topic, measurement))
+        client.publish(topic, message)
+
 def on_connect(client, userdata, flags, rc):
     '''
     Función que se ejecuta cuando se conecta al bróker.
@@ -106,6 +149,7 @@ def start_cron():
     '''
     print("Iniciando cron...")
     schedule.every().hour.do(analyze_data)
+    schedule.every(15).seconds.do(semana6_validation)
     print("Servicio de control iniciado")
     while 1:
         schedule.run_pending()
