@@ -24,6 +24,7 @@ from .models import City, Country, Data, Location, Measurement, Role, State, Sta
 from realtimeMonitoring import settings
 import dateutil.relativedelta
 from django.db.models import Avg, Max, Min, Sum
+from django.db.models.functions import TruncHour
 
 
 class DashboardView(TemplateView):
@@ -673,3 +674,55 @@ Filtro para formatear datos en los templates
 @ register.filter
 def add_str(str1, str2):
     return str1 + str2
+
+
+# POSTGRES
+def hourly_stats(request, **kwargs):
+    measureParam = kwargs.get("measure", None)
+
+    measurements = Measurement.objects.all()
+    if measureParam is not None:
+        selectedMeasure = Measurement.objects.filter(name=measureParam)[0]
+    elif measurements.count() > 0:
+        selectedMeasure = measurements[0]
+    else:
+        return JsonResponse({"error": "No measurements found"}, status=400)
+
+    start, end = get_daterange(request)
+
+    qs = (
+        Data.objects
+        .filter(
+            measurement__name=selectedMeasure.name,
+            time__gte=start,
+            time__lte=end,
+        )
+        .annotate(hour=TruncHour("time"))
+        .values("hour")
+        .annotate(
+            min=Min("value"),
+            max=Max("value"),
+            avg=Avg("value"),
+            n=Count("time"),
+        )
+        .order_by("hour")
+    )
+
+    points = []
+    for row in qs:
+        hour_dt = row["hour"]
+        t_ms = int(hour_dt.timestamp() * 1000) if hour_dt else None
+        points.append({
+            "t": t_ms,
+            "min": row["min"] or 0,
+            "max": row["max"] or 0,
+            "avg": round(row["avg"], 2) if row["avg"] else 0,
+            "n": row["n"] or 0,
+        })
+
+    return JsonResponse({
+        "measure": selectedMeasure.name,
+        "from": int(start.timestamp() * 1000),
+        "to": int(end.timestamp() * 1000),
+        "points": points,
+    })

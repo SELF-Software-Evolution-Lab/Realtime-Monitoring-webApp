@@ -14,4 +14,8 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('historical/data',
          download_csv_data, name='historical-data'),
+    #endpoint de estadisticas por hora
+    path("hourlyStats/", hourly_stats, name="hourlyStats"),
+    path("hourlyStats/<str:measure>", hourly_stats, name="hourlyStats"),
+    
 ]
